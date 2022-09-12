@@ -1,10 +1,16 @@
 import React, { useState } from 'react'
-import { View, StyleSheet, KeyboardAvoidingView, Text, StatusBar, Image, ScrollView, Dimensions, TouchableOpacity, TextInput, ImageBackground } from 'react-native';
+import { View, StyleSheet, KeyboardAvoidingView, Text, StatusBar, Image, ScrollView, Dimensions, TouchableOpacity, TextInput, ImageBackground, Alert } from 'react-native';
 import { Video, AVPlaybackStatus } from 'expo-av';
 import Icon from '@expo/vector-icons/FontAwesome5';
 import { Primarycolor } from './../Utils/color';
 import { BallIndicator, PacmanIndicator } from 'react-native-indicators';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { Registeruserurl } from '../Utils/urls';
+import axios from 'axios';
+import * as SQLite from 'expo-sqlite';
+
+const db = SQLite.openDatabase('db.Userdbs') // returns Database object
+
 
 
 StatusBar.setHidden(true)
@@ -23,11 +29,111 @@ const Registerscreen = () => {
     const [cemail, setcemail] = useState('');
     const [password, setpassword] = useState('');
     const [username, setusername] = useState('');
+    const [Loading, setLoading] = useState(false);
+    const [isSelected, setSelection] = useState(false);
+    const [success, setsuccess] = useState('');
+    const [error, setError] = useState('');
 
     const [passstatus, setpassstatus] = useState(true);
     const [passiconname, setpassiconname] = useState('eye-slash');
 
     const image = require('./../../assets/test.png')
+
+
+
+    //Students Register
+    const Register = () => {
+        setLoading(true)
+        setError(null)
+
+        const valemail = email.match(/^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/);
+
+        if (!username | !email | !password) {
+            setLoading(false)
+            setError("Fill all fields")
+        }
+        else if (cemail !== email) {
+            setLoading(false)
+            setError("Email addresses do not match")
+        }
+        else if (!valemail) {
+            setLoading(false)
+            setError("Invalid email address")
+        }
+        else {
+            setError(null)
+            axios.post(Registeruserurl, {
+                username: username,
+                email: email,
+                password: password,
+            }).then(function (response) {
+                setLoading(false)
+                if (!response.data.message) {
+                    if (!response.data.success) {
+                        setError("internal error.contact admin")
+                    } else {
+                        db.transaction(tx => {
+                            // sending 4 arguments in executeSql
+                            tx.executeSql('SELECT * FROM User', null, // passing sql query and parameters:null
+                                // success callback which sends two things Transaction object and ResultSet Object
+                                (txObj, { rows: { _array } }) => {
+                                    if (!_array[0]?.email) {
+                                        db.transaction(tx => {
+                                            tx.executeSql('INSERT INTO User (email,username,unid,url,token) values (?,?,?,?,?)', [response.data.email, response.data.username, response.data.id, response.data.url, response.data.token],
+                                                (txObj, resultSet) => {
+                                                    if (resultSet.rowsAffected > 0) {
+                                                        setsuccess("Registration successful")
+                                                        navigation.navigate("started")
+
+                                                    } else {
+                                                        Alert.alert(
+                                                            "Error",
+                                                            'Contact admin',
+                                                            [
+                                                                { text: "OK" }
+                                                            ]
+                                                        );
+                                                    }
+                                                },
+                                                (txObj, error) => {
+                                                    Alert.alert(
+                                                        "Error",
+                                                        error + 'Contact admin',
+                                                        [
+                                                            { text: "OK" }
+                                                        ]
+                                                    );
+                                                })
+                                        })
+                                    } else {
+                                        Alert.alert(
+                                            "Error",
+                                            'Device already registered',
+                                            [
+                                                { text: "OK" }
+                                            ]
+                                        );
+                                    }
+                                },
+
+                                // failure callback which sends two things Transaction object and Error
+                                (txObj, error) => console.log('Error ', error)
+
+                            ) // end executeSQL
+                        }) // end transaction
+                    }
+                } else {
+                    setError(response.data.message)
+                }
+                // 
+            }).catch(function (error) {
+                setLoading(false)
+                setError("Sorry an error occurred,try again later");
+                //if(error.response.status === 401 || error.response.status === 400){}
+
+            });
+        }
+    }
 
 
     return (
@@ -115,15 +221,17 @@ const Registerscreen = () => {
                                 <TouchableOpacity onPress={() => {
                                     passiconname == "eye" ? setpassiconname("eye-slash") : setpassiconname("eye")
                                     passstatus ? setpassstatus(false) : setpassstatus(true)
-
                                 }}>
                                     <Icon name={passiconname} style={{ color: "gray", marginTop: 10 }} size={20} />
                                 </TouchableOpacity>
                             </View>
+                            {success ? <Text style={{ fontSize: 10, color: "green" }}>{success}</Text> : null}
+                            {error ? <Text style={{ fontSize: 10, color: "red" }}>{error}</Text> : null}
                             <TouchableOpacity
-                                onPress={() => navigation.navigate("started")}
+                                onPress={Register}
                                 style={styles.loginbtn}>
-                                <Text style={{ color: "white", fontWeight: "bold" }}>Create account</Text>
+                                {Loading ? <BallIndicator color='white' size={20} /> : <Text style={{ color: "white", fontWeight: "bold" }}>Create account</Text>}
+
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -137,7 +245,7 @@ const Registerscreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-      },
+    },
     image: {
         flex: 1,
         // justifyContent: "center"
@@ -147,7 +255,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         marginTop: 30,
-        paddingVertical: 10,
+        height:40,
         borderRadius: 5,
         width: "95%"
 

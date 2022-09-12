@@ -1,12 +1,18 @@
 import React, { useState, useRef } from 'react'
-import { View, StyleSheet, KeyboardAvoidingView, Text, StatusBar, Image, ScrollView, Dimensions, TouchableOpacity, TextInput, ImageBackground } from 'react-native';
+import { View, StyleSheet, KeyboardAvoidingView, Text, StatusBar, Image, ScrollView, Dimensions, TouchableOpacity, TextInput, ImageBackground, Linking } from 'react-native';
 import { Video, AVPlaybackStatus } from 'expo-av';
 import Icon from '@expo/vector-icons/FontAwesome';
 import { Primarycolor } from '../Utils/color';
 import { BallIndicator, PacmanIndicator } from 'react-native-indicators';
 import { images } from './assetsurls';
-import {sendEmail} from './sendmail';
+import { sendEmail } from './sendmail';
 import { useNavigation } from '@react-navigation/native';
+import { Getuserdetails } from './../Utils/getuserdetails';
+import { Submitplanuserurl, Makebespokerequesturl } from "./../Utils/urls"
+import axios from 'axios';
+import * as SQLite from 'expo-sqlite';
+
+const db = SQLite.openDatabase('db.Userdbs') // returns Database object
 
 
 StatusBar.setHidden(true)
@@ -20,27 +26,97 @@ const Membershipplans = () => {
 
     const url = images.getstartedvideo.uri;
     const navigation = useNavigation();
+    const user = Getuserdetails();
+    const [error, seterror] = useState('');
+    const [success, setsuccess] = useState('');
 
     const scrollViewRef = useRef();
     const viewref = useRef();
     const [showmembershipbutton, setshowmembershipbutton] = useState(false);
-
+    const [loading, setloading] = useState(false);
 
     const image = require('./../../assets/images/member.png')
 
     //send email for bespoke plan
     const send = () => {
-        
-            sendEmail(
-                'admin@mmpg.com',
-                'Bespoke plan request',
-                'Requesting to get bespoke plan ',
-                { cc: 'admin@mmpg.com; info@mmpg.com;' }
-            ).then(() => {
-                console.log('Your message was successfully sent!');
-            });
-        
 
+        sendEmail(
+            'admin@mmpg.com',
+            'Bespoke plan request',
+            'Requesting to get bespoke plan ',
+            { cc: 'admin@mmpg.com; info@mmpg.com;' }
+        ).then(() => {
+            console.log('Your message was successfully sent!');
+        });
+    }
+
+    const Makerequest = () => {
+        setloading(true)
+        seterror(null)
+        axios.post(Makebespokerequesturl, {
+            token: user.token,
+        }).then(function (response) {
+            setloading(false)
+            if (!response.data.message) {
+                if (response.data.success) {
+                    setsuccess(response.data.success)
+                    chooseplan('Label')
+                } else {
+                    seterror("There was an internal error contact admin")
+                }
+            } else {
+                seterror(response.data.message)
+            }
+            // 
+        }).catch(function (error) {
+            setloading(false)
+            seterror("Sorry an error occurred,try again later");
+            //if(error.response.status === 401 || error.response.status === 400){}
+
+        });
+
+    }
+
+    const chooseplan = (e) => {
+        setloading(true)
+        seterror(null)
+        axios.post(Submitplanuserurl, {
+            token: user.token,
+            plan: e
+        }).then(function (response) {
+            setloading(false)
+            if (!response.data.message) {
+                if (response.data.success) {
+                    db.transaction(tx => {
+                        // sending 4 arguments in executeSql
+                        tx.executeSql('UPDATE User set type=? where email=?',
+                            [e, user.email], // passing sql query and parameters:null
+                            // success callback which sends two things Transaction object and ResultSet Object
+                            (tx, results) => {
+                                if (results.rowsAffected > 0) {
+                                    navigation.replace("default")
+                                    Linking.openURL('https://mmpg.eazistey.co.ke/' + user.token)
+                                } else {
+                                    seterror("Internal app error.contact admin")
+                                }
+                            },
+                            (txObj, error) => console.log('Error ', error)
+                        ) // end executeSQL
+                    }) // end transaction
+                } else {
+                    seterror("There was an internal error contact admin")
+                }
+            } else {
+                seterror(response.data.message)
+            }
+            // 
+        }).catch(function (error) {
+
+            setloading(false)
+            seterror("Sorry an error occurred,try again later");
+            //if(error.response.status === 401 || error.response.status === 400){}
+
+        });
     }
 
 
@@ -132,20 +208,22 @@ const Membershipplans = () => {
                                     <Text style={{ fontSize: 23, color: "white", fontWeight: "400" }}>
                                         $16.99/yr
                                     </Text>
-                                    <TouchableOpacity 
-                                    onPress={()=>navigation.replace("default")}
-                                    style={{
-                                        backgroundColor: Primarycolor(),
-                                        alignSelf: "flex-end",
-                                        justifyContent: "center",
-                                        alignItems: "center",
-                                        width: "40%",
-                                        paddingVertical: 10,
-                                        borderRadius: 5
-                                    }}>
-                                        <Text style={{ color: "white", fontWeight: "bold" }}>
+                                    {error ? <Text style={{ fontSize: 10, color: "red" }}>{error}</Text> : null}
+                                    <TouchableOpacity
+                                        onPress={() => chooseplan('Artist')}
+                                        style={{
+                                            backgroundColor: Primarycolor(),
+                                            alignSelf: "flex-end",
+                                            justifyContent: "center",
+                                            alignItems: "center",
+                                            width: "40%",
+                                            height: 40,
+                                            paddingVertical: 10,
+                                            borderRadius: 5
+                                        }}>
+                                        {loading ? <BallIndicator color='white' size={10} /> : <Text style={{ color: "white", fontWeight: "bold" }}>
                                             Continue
-                                        </Text>
+                                        </Text>}
                                     </TouchableOpacity>
                                 </View>
                             </View>
@@ -242,18 +320,21 @@ const Membershipplans = () => {
                                     <Text style={{ fontSize: 23, color: "white", fontWeight: "400" }}>
                                         $69.99/yr
                                     </Text>
-                                    <TouchableOpacity style={{
-                                        backgroundColor: Primarycolor(),
-                                        alignSelf: "flex-end",
-                                        justifyContent: "center",
-                                        alignItems: "center",
-                                        width: "40%",
-                                        paddingVertical: 10,
-                                        borderRadius: 5
-                                    }}>
-                                        <Text style={{ color: "white", fontWeight: "bold" }}>
+                                    {error ? <Text style={{ fontSize: 10, color: "red" }}>{error}</Text> : null}
+                                    <TouchableOpacity
+                                        onPress={() => chooseplan('Label')}
+                                        style={{
+                                            backgroundColor: Primarycolor(),
+                                            alignSelf: "flex-end",
+                                            justifyContent: "center",
+                                            alignItems: "center",
+                                            width: "40%",
+                                            height: 40,
+                                            borderRadius: 5
+                                        }}>
+                                        {loading ? <BallIndicator color='white' size={10} /> : <Text style={{ color: "white", fontWeight: "bold" }}>
                                             Continue
-                                        </Text>
+                                        </Text>}
                                     </TouchableOpacity>
                                 </View>
                             </View>
@@ -310,18 +391,20 @@ const Membershipplans = () => {
                                 <Text style={{ color: "gray", fontSize: 10 }}>
                                     Plus a Dedicated Account Manager and More
                                 </Text>
-                                <TouchableOpacity 
-                                onPress={send}
-                                style={{
-                                    justifyContent: "center",
-                                    marginTop: 70,
-                                    alignItems: "center",
-                                    borderWidth: 1,
-                                    borderColor: "gray",
-                                    borderRadius: 5,
-                                    paddingHorizontal: 10,
-                                    paddingVertical: 5
-                                }}>
+                                {error ? <Text style={{ fontSize: 10, color: "red" }}>{error}</Text> : null}
+                                {success ? <Text style={{ fontSize: 10, color: "green" }}>{success}</Text> : null}
+                                <TouchableOpacity
+                                    onPress={Makerequest}
+                                    style={{
+                                        justifyContent: "center",
+                                        marginTop: 70,
+                                        alignItems: "center",
+                                        borderWidth: 1,
+                                        borderColor: "gray",
+                                        borderRadius: 5,
+                                        paddingHorizontal: 10,
+                                        height: 40
+                                    }}>
                                     <Text style={{ color: "white" }}>
                                         Contact Us
                                     </Text>

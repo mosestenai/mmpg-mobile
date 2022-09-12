@@ -8,6 +8,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import * as Font from 'expo-font';
 import Nav from "./Nav";
 import { Asset } from "expo-asset";
+import { useFonts } from 'expo-font';
 
 
 const db = SQLite.openDatabase('db.Userdbs') // returns Database object
@@ -41,10 +42,10 @@ const App = () => {
                      // Pre-load fonts, make any API calls you need to do here
                     db.transaction(tx => {
                          tx.executeSql(
-                              'CREATE TABLE IF NOT EXISTS User (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT,username TEXT,phone TEXT,category TEXT,unid TEXT,url TEXT,token TEXT)'
+                              'CREATE TABLE IF NOT EXISTS User (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT,username TEXT,type TEXT,unid TEXT,url TEXT,token TEXT,publish TEXT)'
                          )
                          tx.executeSql(
-                              'CREATE TABLE IF NOT EXISTS Fingerprint (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT,username TEXT,phone TEXT,category TEXT,unid TEXT,url TEXT,token TEXT)'
+                              'CREATE TABLE IF NOT EXISTS Fingerprint (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT,username TEXT,type TEXT,unid TEXT,url TEXT,token TEXT,publish TEXT)'
                          )
                     })
                     const checkupdate = Updates.checkForUpdateAsync();
@@ -62,6 +63,8 @@ const App = () => {
                     // Artificially delay for two seconds to simulate a slow loading
                     // experience. Please remove this if you copy and paste the code!
                     await new Promise(resolve => setTimeout(resolve, 2000));
+                    
+                   
                } catch (e) {
                     console.warn(e);
                } finally {
@@ -90,21 +93,7 @@ const App = () => {
      if (!appIsReady) {
           return null;
      }
-     // else{
-     //      SplashScreen.hideAsync();
-     // }
-     
-
-
-
-
-
-
-     // return (
-     //      display?
-     //      <Nav/>:null
-     // );
-
+  
      return (
           appIsReady && <Nav/>
         

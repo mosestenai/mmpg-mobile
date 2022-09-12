@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { View, StyleSheet, KeyboardAvoidingView, Text, StatusBar, Image, ScrollView, Dimensions, TouchableOpacity, TextInput, ImageBackground } from 'react-native';
 import { Video, AVPlaybackStatus } from 'expo-av';
 import Icon from '@expo/vector-icons/FontAwesome5';
@@ -7,6 +7,12 @@ import { useNavigation } from '@react-navigation/native';
 import { BallIndicator, PacmanIndicator } from 'react-native-indicators';
 import { images } from './assetsurls';
 import { useFonts } from 'expo-font';
+import * as SQLite from 'expo-sqlite';
+import { Getuserdetails } from './../Utils/getuserdetails';
+
+const db = SQLite.openDatabase('db.Userdbs') // returns Database object
+
+
 
 StatusBar.setHidden(true)
 var deviceHeight = Dimensions.get('window').height;
@@ -16,77 +22,82 @@ const primarycolor = Primarycolor();
 
 
 export default function Homescreen() {
-
+  const user = Getuserdetails();
   const videourl = images.firstvideo.uri;
+  const showdash = user?.length > 0 ? true : false;
 
   const navigation = useNavigation();
-
-  const image = require('./../../assets/gif/Reset.gif');
+  const [userexists, setuserexists] = useState(false);
 
 
   const [loaded] = useFonts({
-    Montserrat: require('./../../assets/fonts/fontone.ttf'),
+    Montserrat: require('./../../assets/fonts/wiz3.ttf'),
   });
+
   if (!loaded) {
     return null;
   }
-  console.log(loaded)
+
+
 
   return (
-    <View style={styles.container}>
-      {/* <ImageBackground source={image} resizeMode="cover" style={styles.image}> */}
-      <Video
-        source={videourl}
-        style={styles.backgroundVideo}
-        rate={1}
-        shouldPlay={true}
-        isLooping={true}
-        volume={1}
-        muted={true}
-        resizeMode="cover"
-      />
+      showdash ?
+        <View>
+          {navigation.navigate("started")}
+        </View> :
+        <View style={styles.container}>
+          {/* <ImageBackground source={image} resizeMode="cover" style={styles.image}> */}
+          <Video
+            source={videourl}
+            style={styles.backgroundVideo}
+            rate={1}
+            shouldPlay={true}
+            isLooping={true}
+            volume={1}
+            muted={true}
+            resizeMode="cover"
+          />
 
-      <KeyboardAvoidingView behavior='padding' style={styles.container}>
-        <ScrollView>
-          <View style={styles.loginContainer}>
-            <Image
-              source={require('./../../assets/images/icon.png')}
-              style={{ height: 50, width: 50 }}
-            />
-            <Text style={{ color: "white", fontWeight: "bold",fontFamily: 'haxwts-phiz-inline' }}>RELEASE UNLIMITED MUSIC</Text>
-            <Text style={{ color: "white", fontWeight: "bold", fontSize: 25 }}>FROM YOUR PHONE</Text>
-            <Text style={{ marginTop: 20, color: "white", fontSize: 10 }}>WHEREVER YOU GO</Text>
-            <View style={styles.bottomCenter}>
-              <View style={{ justifyContent: "center", alignItems: "center" }}>
-                <Icon name="angle-up" color="white" />
+          <KeyboardAvoidingView behavior='padding' style={styles.container}>
+            <ScrollView>
+              <View style={styles.loginContainer}>
+                <Image
+                  source={require('./../../assets/images/icon.png')}
+                  style={{ height: 50, width: 50 }}
+                />
+                <Text style={{ color: "white", fontFamily: 'Montserrat' }}>RELEASE UNLIMITED MUSIC</Text>
+                <Text style={{ color: "white", fontWeight: "bold", fontSize: 25 }}>FROM YOUR PHONE</Text>
+                <Text style={{ marginTop: 20, color: "white", fontSize: 10 }}>WHEREVER YOU GO</Text>
+                <View style={styles.bottomCenter}>
+                  <View style={{ justifyContent: "center", alignItems: "center" }}>
+                    <Icon name="angle-up" color="white" />
+                  </View>
+                  <Text style={{ color: "white" }}>Swipe up</Text>
+                </View>
               </View>
-              <Text style={{ color: "white" }}>Swipe up</Text>
-            </View>
-          </View>
-          <View style={styles.SecondContainer}>
-            <Text style={{ color: "white", fontWeight: "bold", fontSize: 25 }}>YOUR</Text>
-            <Text style={{ color: "white", fontWeight: "bold", fontSize: 25 }}>MUSIC..</Text>
-            <Text style={{ fontSize: 28, color: "white", fontWeight: "bold" }}>TAKE CONTROL !</Text>
-            <Text style={{ fontSize: 10, color: "white", fontWeight: "bold" }}>EMPOWERING CREATORS WORLDWIDE.</Text>
-            <View style={{ flexDirection: "row", marginTop: 10 }}>
-              <TouchableOpacity onPress={() => navigation.navigate("register",{
-                url: videourl
-              })}
-                style={styles.joinbtn}>
-                <Text style={{ color: "white", fontWeight: "bold" }}>Join</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => navigation.navigate("login")}
-                style={styles.signinbtn}>
-                <Text style={{ color: "white", fontWeight: "bold" }}>Sign in</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </ScrollView>
+              <View style={styles.SecondContainer}>
+                <Text style={{ color: "white", fontWeight: "bold", fontSize: 25 }}>YOUR</Text>
+                <Text style={{ color: "white", fontWeight: "bold", fontSize: 25 }}>MUSIC..</Text>
+                <Text style={{ fontSize: 28, color: "white", fontFamily: 'Montserrat' }}>TAKE CONTROL!</Text>
+                <Text style={{ fontSize: 10, color: "white", fontWeight: "bold" }}>EMPOWERING CREATORS WORLDWIDE.</Text>
+                <View style={{ flexDirection: "row", marginTop: 10 }}>
+                  <TouchableOpacity onPress={() => navigation.navigate("register", {
+                    url: videourl
+                  })} style={styles.joinbtn}>
+                    <Text style={{ color: "white", fontWeight: "bold" }}>Join</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => navigation.navigate("login")}
+                    style={styles.signinbtn}>
+                    <Text style={{ color: "white", fontWeight: "bold" }}>Sign in</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </ScrollView>
 
-        {/* </ImageBackground> */}
-      </KeyboardAvoidingView>
-    </View>
+            {/* </ImageBackground> */}
+          </KeyboardAvoidingView>
+        </View>
   );
 }
 

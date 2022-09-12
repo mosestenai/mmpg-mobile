@@ -1,8 +1,9 @@
-import React from "react";
+import React ,{useState} from "react";
 import { View, Text, Dimensions, SafeAreaView, ScrollView, TouchableOpacity, Image, StyleSheet } from "react-native";
 import { Secondarycolor } from "../Utils/color";
 import Icon from '@expo/vector-icons/FontAwesome5';
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
+
 
 
 var deviceHeight = Dimensions.get('window').height;
@@ -10,9 +11,10 @@ var deviceWidth = Dimensions.get('window').width;
 const ViewNotifications = () => {
 
     const navigation = useNavigation();
+    const route = useRoute();
+    const [notifications, setnotifications] = useState(route.params.notifications.reverse());
 
-
-
+    
     return (
         <SafeAreaView style={{ height: deviceHeight, backgroundColor: "black" }}>
             <View style={{
@@ -28,60 +30,37 @@ const ViewNotifications = () => {
                 </TouchableOpacity>
             </View>
             <ScrollView>
+                <View style={{ paddingBottom: 100 }}>
+                    {notifications.map((val, key) => {
 
-                <TouchableOpacity style={styles.notview}>
-                    <View style={{ flexDirection: "row" }}>
-                        <Image
-                            source={require("./../../assets/gif/icon2.png")}
-                            style={{
-                                height: 30,
-                                width: 30,
-                                marginLeft: "5%",
-                                marginTop: 20,
-                                borderWidth: 1,
-                                borderColor: "white",
-                                borderRadius: 20
-                            }}
-                        />
-                        <Text style={styles.nottitle}>MMPG</Text>
-                        <Text style={styles.notdate}>06 Aug</Text>
-                    </View>
-                    <View style={styles.notmessage}>
-                        <Text style={{color:"gray",fontSize:11}}>
-                            Hello, We're reaching out to let you know that
-                            the following project that was recently
-                            submitted
-                        </Text>
-                    </View>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.notview}>
-                    <View style={{ flexDirection: "row" }}>
-                        <Image
-                            source={require("./../../assets/gif/icon2.png")}
-                            style={{
-                                height: 30,
-                                width: 30,
-                                marginLeft: "5%",
-                                marginTop: 20,
-                                borderWidth: 1,
-                                borderColor: "white",
-                                borderRadius: 20
-                            }}
-                        />
-                        <Text style={styles.nottitle}>MMPG</Text>
-                        <Text style={styles.notdate}>06 Aug</Text>
-                    </View>
-                    <View style={styles.notmessage}>
-                        <Text style={{color:"gray",fontSize:11}}>
-                            Hello, We're reaching out to let you know that
-                            the following project that was recently
-                            submitted
-                        </Text>
-                    </View>
-                </TouchableOpacity>
+                        return (
+                            <TouchableOpacity key={key} style={styles.notview}>
+                                <View style={{ flexDirection: "row" }}>
+                                    <Image
+                                        source={require("./../../assets/gif/icon2.png")}
+                                        style={{
+                                            height: 30,
+                                            width: 30,
+                                            marginLeft: "5%",
+                                            marginTop: 20,
+                                            borderWidth: 1,
+                                            borderColor: "white",
+                                            borderRadius: 20
+                                        }}
+                                    />
+                                    <Text style={styles.nottitle}>MMPG</Text>
+                                    <Text style={styles.notdate}>{val.date}</Text>
+                                </View>
+                                <View style={styles.notmessage}>
+                                    <Text style={{ color: "gray", fontSize: 11 }}>
+                                       {val.message}
+                                    </Text>
+                                </View>
+                            </TouchableOpacity>
+                        )
+                    })}
 
-
-
+                </View>
 
             </ScrollView>
         </SafeAreaView>
@@ -110,9 +89,9 @@ const styles = StyleSheet.create({
     },
     notmessage: {
         backgroundColor: Secondarycolor(),
-        marginLeft:"20%",
-        padding:10,
-        borderRadius:5
+        marginLeft: "20%",
+        padding: 10,
+        borderRadius: 5
     }
 })
 

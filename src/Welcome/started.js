@@ -26,6 +26,7 @@ const Started = () => {
     const navigation = useNavigation();
 
     const image = require("./../../assets/images/Join.png")
+   
 
     return (
         <View style={styles.container}>
