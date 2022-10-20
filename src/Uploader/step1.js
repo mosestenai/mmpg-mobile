@@ -7,6 +7,9 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { FontAwesome5 } from "../Components/fontawesome5";
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system'
+import * as SQLite from 'expo-sqlite';
+
+const db = SQLite.openDatabase('db.Userdbs') // returns Database object
 
 var devicewidth = Dimensions.get('window').width;
 var deviceheight = Dimensions.get('window').height;
@@ -31,7 +34,7 @@ const Step1 = () => {
     const [releasetitle, setreleasetitle] = useState(screendata?.title);
     const [error, seterror] = useState('');
     const [cover, setcover] = useState(null);
-    const [url, seturl] = useState(screendata?.url);
+    const [url, seturl] = useState(screendata?.url || screendata?.imgurl);
 
 
     const pickImage = async () => {
@@ -43,15 +46,30 @@ const Step1 = () => {
             quality: 1,
         });
 
+
         if (result.cancelled) return
 
         const { uri, type } = result
         const fileInfo = await getFileInfo(result.uri)
 
+
+        // const {width, height} = Image.resolveAssetSource(result.uri);
+        // console.log(width)
+
         if (!fileInfo?.size) {
             Alert.alert(
                 "Error",
                 "Can't select this file as the size is unknown.",
+                [
+                    { text: "OK" }
+                ]
+            );
+            return
+        }
+        if (result.height < 3000 || result.width < 3000) {
+            Alert.alert(
+                "Error",
+                "Image too small.Must be at least 3000 * 3000 pixels",
                 [
                     { text: "OK" }
                 ]
@@ -115,11 +133,39 @@ const Step1 = () => {
         }
     }
 
+    const saveforlater = () => {
+        db.transaction(tx => {
+
+            tx.executeSql('INSERT INTO Tracks (title,imgurl) values (?,?)', [releasetitle, url],
+                (txObj, resultSet) => {
+                    Alert.alert(
+                        "Success",
+                        'Saved successfully',
+                        [
+                            { text: "OK" }
+                        ]
+                    );
+                    setTimeout(() => {
+                        navigation.navigate("Home")
+                    }, 3000);
+                },
+                (txObj, error) => {
+                    Alert.alert(
+                        "Error",
+                        error + 'Contact admin',
+                        [
+                            { text: "OK" }
+                        ]
+                    );
+                })
+        }) // end transaction
+
+    }
 
     return (
         <SafeAreaView style={{ height: deviceheight, backgroundColor: "black" }}>
             <View style={styles.fixedview}>
-                <TouchableOpacity style={styles.savelater}>
+                <TouchableOpacity style={styles.savelater} onPress={saveforlater}>
                     <SimpleLineIcons name="logout" color="white" size={25} />
                     <Text style={{ color: "white", marginLeft: 5, marginTop: 3 }}>Save for Later</Text>
                 </TouchableOpacity>
@@ -167,7 +213,6 @@ const Step1 = () => {
                                 source={{ uri: url }}
                                 style={{
                                     marginTop: 20,
-                                    borderStyle: "dotted",
                                     borderWidth: 1,
                                     borderColor: Semisecondarycolor(),
                                     height: deviceheight / 5, marginRight: 20

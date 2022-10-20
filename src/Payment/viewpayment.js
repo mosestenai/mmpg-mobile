@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, Dimensions, StyleSheet, Alert, Image } from "react-native";
+import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, Dimensions, StyleSheet, Alert, Image, RefreshControl } from "react-native";
 import { FontAwesome5 } from "../Components/fontawesome5";
 import { MaterialCommunityIcons } from "../Components/materialcommunity";
 import { Primarycolor, Secondarycolor, Semisecondarycolor, Viewcolor } from "../Utils/color";
@@ -31,10 +31,15 @@ const Viewpayment = () => {
     const [artists, setartists] = useState([]);
     const [loading, setloading] = useState(true);
     const [labeldata, setlabeldata] = useState('');
-    const [sumlocations, setsumlocations] = useState('');
+    const [sumlocations, setsumlocations] = useState([56, 56, 66, 77, 78]);
     const [locations, setlocations] = useState([]);
-    const [graphdata, setgraphdata] = useState([56, 56, 66, 77, 78]);
+    const [graphdata, setgraphdata] = useState([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
     const [screendata, setscreendata] = useState('');
+    const [defaultid, setdefaultid] = useState(12);
+    const [defaultsort, setdefaultsort] = useState({
+        month: "All",
+        id: 12
+    });
 
     //locations
     const [australia, setaustralia] = useState('');
@@ -43,6 +48,8 @@ const Viewpayment = () => {
     const [uk, setuk] = useState('');
     const [us, setus] = useState('');
     const [nothing, setnothing] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
+    const [showcalender, setshowcalender] = useState(false);
 
 
     var currentdate = new Date();
@@ -100,16 +107,17 @@ const Viewpayment = () => {
         });
     }
 
-    const calculate = (val, all) => {
-        var result = all.map(function (x) {
-            return parseInt(x, 10);
-        });
-        var gh = Math.round((val / result.reduce((partialSum, a) => partialSum + a,)) * 10)
-        return gh;
-    }
+    // console.log(graphdata)
+
+    // const calculate = (val, all) => {
+    //     var result = all.map(function (x) {
+    //         return parseInt(x, 10);
+    //     });
+    //     var gh = (val / result.reduce((partialSum, a) => partialSum + a,)) * 10
+    //     return gh;
+    // }
 
     const fetchartists = (e) => {
-
         axios.post(Getartistsdataurl, {
             token: e.token,
         }).then(function (response) {
@@ -117,13 +125,17 @@ const Viewpayment = () => {
             if (!response.data.message) {
                 setartists(response.data)
                 if (e.type === 'Artist') {
+                    // var result = response.data[0].locationroyalty.map(function (x) {
+                    //     return parseInt(x, 10);
+                    // });
+                    // var gh = result.reduce((partialSum, a) => partialSum + a,);
+                    setsumlocations(response.data[0].locationroyalty)
                     setgraphdata(response.data[0].royaltyhistory)
-                    setsumlocations(response.data[0].locationroyalty.reduce((partialSum, a) => partialSum + a,))
-                    setaustralia(calculate(response.data[0].locationroyalty[0], response.data[0].locationroyalty))
-                    seteurope(calculate(response.data[0].locationroyalty[1], response.data[0].locationroyalty))
-                    setcanada(calculate(response.data[0].locationroyalty[2], response.data[0].locationroyalty))
-                    setuk(calculate(response.data[0].locationroyalty[3], response.data[0].locationroyalty))
-                    setus(calculate(response.data[0].locationroyalty[4], response.data[0].locationroyalty))
+                    setaustralia(response.data[0].locationroyalty[0])
+                    seteurope(response.data[0].locationroyalty[1])
+                    setcanada(response.data[0].locationroyalty[2])
+                    setuk(response.data[0].locationroyalty[3])
+                    setus(response.data[0].locationroyalty[4])
                     setscreendata(response.data[0])
                 }
 
@@ -157,14 +169,18 @@ const Viewpayment = () => {
         }).then(function (response) {
             setloading(false)
             if (!response.data.message) {
+                // var result = response.data.locationroyalty.map(function (x) {
+                //     return parseInt(x, 10);
+                // });
+                // var gh = result.reduce((partialSum, a) => partialSum + a,);
+                setsumlocations(response.data.locationroyalty)
                 setlabeldata(response.data)
                 setgraphdata(response.data.royaltyhistory)
-                setsumlocations(response.data.locationroyalty.reduce((partialSum, a) => partialSum + a,))
-                setaustralia(calculate(response.data.locationroyalty[0], response.data.locationroyalty))
-                seteurope(calculate(response.data.locationroyalty[1], response.data.locationroyalty))
-                setcanada(calculate(response.data.locationroyalty[2], response.data.locationroyalty))
-                setuk(calculate(response.data.locationroyalty[3], response.data.locationroyalty))
-                setus(calculate(response.data.locationroyalty[4], response.data.locationroyalty))
+                setaustralia(response.data.locationroyalty[0])
+                seteurope(response.data.locationroyalty[1])
+                setcanada(response.data.locationroyalty[2])
+                setuk(response.data.locationroyalty[3])
+                setus(response.data.locationroyalty[4])
                 setscreendata(response.data)
 
             } else {
@@ -196,7 +212,7 @@ const Viewpayment = () => {
             <>
                 <LineChart
                     data={{
-                        labels: ['Ja', 'Fe', 'Ma', 'Ap', 'Ma', 'jun', 'jul', 'Au', 'Sep', 'Oc', 'Nov', 'De'],
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'jun', 'jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
                         datasets: [
                             {
                                 data: graphdata
@@ -205,19 +221,36 @@ const Viewpayment = () => {
                     }}
                     width={deviceWidth - 30} // from react-native
                     height={220}
+                    verticalLabelRotation={-60}
+                    withInnerLines={true}
+                    withVerticalLines={false}
+                    withHorizontalLines={true}
+                    withDots={false}
+                    withOuterLines={false}
+
+
                     // yAxisLabel={'Rs'}
                     chartConfig={{
                         backgroundColor: Primarycolor(),
                         backgroundGradientFrom: Secondarycolor(),
                         backgroundGradientTo: Secondarycolor(),
-                        linejoinType: "bevel",
-                        decimalPlaces: 1, // optional, defaults to 2dp
+                        // linejoinType: "bevel",
+                        decimalPlaces: 0, // optional, defaults to 2dp
                         //color: (opacity = 255) => `rgba(0, 0, 0, ${opacity})`,
                         color: (opacity = 255) => Primarycolor(),
+                        labelColor: (opacity = 255) => "white",
                         style: {
                             borderRadius: 16,
-                            borderBottomLeftRadius: 5
+                            borderBottomLeftRadius: 5,
                         },
+                        propsForBackgroundLines: {
+                            stroke: "white",
+                        },
+                        linejoinType: "bevel",
+
+
+
+
                     }}
                     bezier
                     style={{
@@ -226,22 +259,63 @@ const Viewpayment = () => {
                         borderBottomLeftRadius: 5
                     }}
 
+
                 />
             </>
         );
     };
 
-    const locationarray = [
-        { x: "Australia", y: australia },
-        { x: "Europe", y: europe },
-        { x: "Canada", y: canada },
-        { x: "Uk", y: uk },
-        { x: "USA", y: us }
-    ]
+    //  //calculate percentage
+    //  const calculate2 = (val) => {
+    //     var gh = Math.round((val / sumlocations) * 100)
+    //     return gh;
+    // }
 
+    // const locationarray = [
+    //     { x: `Australia(${calculate2(australia)}%)`, y: australia },
+    //     { x: `Europe(${calculate2(europe)}%)`, y: europe},
+    //     { x: `Canada(${calculate2(canada)}%)`, y:canada},
+    //     { x: `Uk(${calculate2(uk)}%)`, y: uk },
+    //     { x: `USA(${calculate2(us)}%)`, y: us }
+    // ]
+
+    // const finallocationarray = locationarray.sort(function (a, b) {
+    //     return parseFloat(a.y) - parseFloat(b.y);
+    // });
+
+
+    //calculate whole value to be under 10
+    const calculate = (val, all) => {
+        var result = all?.map(function (x) {
+            return parseInt(x, 10);
+        });
+
+        var gh = (val / result?.reduce((partialSum, a) => partialSum + a,)) * 10
+        return gh;
+    }
+
+    //calculate percentage
+    const calculate2 = (val, all) => {
+        var result = all?.map(function (x) {
+            return parseInt(x, 10);
+        });
+
+        var gh = Math.round((val / result?.reduce((partialSum, a) => partialSum + a,)) * 100)
+        return gh;
+    }
+
+    const locationarray = [
+        { x: `Australia(${calculate2(australia, sumlocations)}%)`, y: calculate(australia, sumlocations) },
+        { x: `Europe(${calculate2(europe, sumlocations)}%)`, y: calculate(europe, sumlocations) },
+        { x: `Canada(${calculate2(canada, sumlocations)}%)`, y: calculate(canada, sumlocations) },
+        { x: `Uk(${calculate2(uk, sumlocations)}%)`, y: calculate(uk, sumlocations) },
+        { x: `USA(${calculate2(us, sumlocations)}%)`, y: calculate(us, sumlocations) }
+    ]
     const finallocationarray = locationarray.sort(function (a, b) {
         return parseFloat(a.y) - parseFloat(b.y);
     });
+
+
 
 
 
@@ -278,6 +352,67 @@ const Viewpayment = () => {
 
     }
 
+    const onrefresh = () => {
+        fetchtracks(user);
+        fetchartists(user)
+        user.type == 'Label' && fetchlabeldata(user)
+    }
+
+    const months = [
+        {
+            month: "jan",
+            id: 0
+        },
+        {
+            month: "feb",
+            id: 1
+        },
+        {
+            month: "mar",
+            id: 2
+        },
+        {
+            month: "apr",
+            id: 3
+        },
+        {
+            month: "may",
+            id: 4
+        },
+        {
+            month: "jun",
+            id: 5
+        },
+        {
+            month: "july",
+            id: 6
+        },
+        {
+            month: "Aug",
+            id: 7
+        },
+        {
+            month: "sep",
+            id: 8
+        },
+        {
+            month: "oct",
+            id: 9
+        },
+        {
+            month: "nov",
+            id: 10
+        },
+        {
+            month: "dec",
+            id: 11
+        },
+        {
+            month: "All",
+            id: 12
+        },
+    ]
+
 
 
     return (
@@ -285,6 +420,31 @@ const Viewpayment = () => {
             backgroundColor: "black",
             height: deviceHeight
         }}>
+            {showcalender ? <Spinner
+                visible={true}
+                color='red'
+                size={70}
+                customIndicator={
+                    <View style={{ width: "80%", backgroundColor: Secondarycolor() }}>
+                        <Text style={{ color: "gray", padding: 5 }}>Sort criteria</Text>
+                        {months.map((val, key) => {
+                            return (
+                                <TouchableOpacity onPress={() => {
+                                    setdefaultid(val.id)
+                                    setdefaultsort(val)
+                                    setshowcalender(false)
+                                }} key={key}
+                                    style={{
+                                        padding: 10,
+                                        backgroundColor: defaultid === val.id ? Primarycolor() : Secondarycolor()
+                                    }}>
+                                    <Text style={{ color: "white" }}>{val.month}</Text>
+                                </TouchableOpacity>
+                            )
+                        })}
+
+                    </View>}
+            /> : null}
             {loading &&
                 <Spinner
                     visible={true}
@@ -294,12 +454,21 @@ const Viewpayment = () => {
 
                 />}
             <View style={styles.topview}>
-                <Text style={{ color: "gray" }}>{year}</Text>
-                <TouchableOpacity style={styles.calenderview}>
+                <Text style={{ color: "gray" }}>
+                    {defaultid === 12 ? year : defaultsort?.month}
+                </Text>
+                <TouchableOpacity style={styles.calenderview} onPress={() => {graphdata?.length > 0  && setshowcalender(true) }}>
                     <MaterialCommunityIcons name="calendar" color={"gray"} size={25} />
                 </TouchableOpacity>
             </View>
-            <ScrollView>
+            <ScrollView refreshControl={
+                <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={onrefresh}
+                    color='#4a43eb'
+                    tintColor="#4a43eb"
+                />
+            }>
                 <View style={{ paddingBottom: 200 }}>
 
                     <View style={styles.royaltyview}>
@@ -310,7 +479,10 @@ const Viewpayment = () => {
                                 marginLeft: 5,
                                 fontSize: 25,
                                 color: "white"
-                            }}>{user?.type === 'Artist' ? artists[0]?.totalroyalty.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : labeldata?.totalroyalty?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</Text>
+                            }}>
+                                {screendata?.totalroyalty?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                                {/* {user?.type === 'Artist' ? artists[0]?.totalroyalty.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : labeldata?.totalroyalty?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")} */}
+                            </Text>
                         </View>
                         <View style={{ flexDirection: "row" }}>
                             <Foundation name="info" color={"white"} size={15} />
@@ -335,6 +507,24 @@ const Viewpayment = () => {
                         </View>
                     </View>
                     <View style={{ marginTop: 20, backgroundColor: Secondarycolor(), marginHorizontal: "3%", borderRadius: 10 }}>
+                        <View style={{
+                            position: "absolute",
+                            right: 20,
+                            zIndex: 1,
+                            justifyContent: "center",
+                            alignItems: "center",
+                            bottom: 60
+                        }}>
+                            <Text style={{ color: "white", fontSize: 8 }}>TOTAL</Text>
+                            <Text style={{
+                                marginLeft: 5,
+                                fontSize: 8,
+                                color: "white"
+                            }}>
+                                {defaultid === 12 ? screendata?.totalroyalty?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : graphdata[defaultid]}
+                                {/* {user?.type === 'Artist' ? artists[0]?.totalroyalty.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : labeldata?.totalroyalty?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")} */}
+                            </Text>
+                        </View>
                         <Text style={{ color: "gray", fontSize: 10, marginLeft: 10, marginTop: 10 }}>Royalty History</Text>
                         {!loading && artists[0]?.royaltyhistory && <MyBezierLineChart />}
                         <View style={{ alignSelf: "center", flexDirection: "row" }}>
@@ -431,33 +621,48 @@ const Viewpayment = () => {
                         <View style={styles.line} />
                         <View style={styles.servicediv}>
                             <Text style={{ color: "white", fontWeight: "bold", fontSize: 13 }}>Spotify</Text>
-                            <Text style={styles.digitalmoney}> ${user.type === 'Artist' ? artists[0]?.spotifyroyalty.reduce((partialSum, a) => partialSum + a, 0) : labeldata?.spotifyroyalty?.reduce((partialSum, a) => partialSum + a, 0)}</Text>
+                            <Text style={styles.digitalmoney}>
+                                ${screendata?.spotifyroyalty?.reduce((partialSum, a) => partialSum + a, 0)}
+                                {/* ${user.type === 'Artist' ? artists[0]?.spotifyroyalty.reduce((partialSum, a) => partialSum + a, 0) : labeldata?.spotifyroyalty?.reduce((partialSum, a) => partialSum + a, 0)} */}
+                            </Text>
                         </View>
                         <View style={styles.line} />
                         <View style={styles.servicediv}>
                             <Text style={{ color: "white", fontWeight: "bold", fontSize: 13 }}>Apple music</Text>
-                            <Text style={styles.digitalmoney}>${user.type === 'Artist' ? artists[0]?.appleroyalty.reduce((partialSum, a) => partialSum + a, 0) : labeldata?.appleroyalty?.reduce((partialSum, a) => partialSum + a, 0)}</Text>
+                            <Text style={styles.digitalmoney}>
+                                ${screendata?.appleroyalty?.reduce((partialSum, a) => partialSum + a, 0)}
+                                {/* ${user.type === 'Artist' ? artists[0]?.appleroyalty.reduce((partialSum, a) => partialSum + a, 0) : labeldata?.appleroyalty?.reduce((partialSum, a) => partialSum + a, 0)} */}
+                            </Text>
                         </View>
                         <View style={styles.line} />
                         <View style={styles.servicediv}>
                             <Text style={{ color: "white", fontWeight: "bold", fontSize: 13 }}>YouTube</Text>
-                            <Text style={styles.digitalmoney}>${user.type === 'Artist' ? artists[0]?.youtuberoyalty.reduce((partialSum, a) => partialSum + a, 0) : labeldata?.youtuberoyalty?.reduce((partialSum, a) => partialSum + a, 0)}</Text>
+                            <Text style={styles.digitalmoney}>
+                                ${screendata?.youtuberoyalty?.reduce((partialSum, a) => partialSum + a, 0)}
+                                {/* ${user.type === 'Artist' ? artists[0]?.youtuberoyalty.reduce((partialSum, a) => partialSum + a, 0) : labeldata?.youtuberoyalty?.reduce((partialSum, a) => partialSum + a, 0)} */}
+                            </Text>
                         </View>
                         <View style={styles.line} />
                         <View style={styles.servicediv}>
                             <Text style={{ color: "white", fontWeight: "bold", fontSize: 13 }}>Facebook(Video)</Text>
-                            <Text style={styles.digitalmoney}>${user.type === 'Artist' ? artists[0]?.facebookroyalty.reduce((partialSum, a) => partialSum + a, 0) : labeldata?.facebookroyalty?.reduce((partialSum, a) => partialSum + a, 0)}</Text>
+                            <Text style={styles.digitalmoney}>
+                                ${screendata?.facebookroyalty?.reduce((partialSum, a) => partialSum + a, 0)}
+                                {/* ${user.type === 'Artist' ? artists[0]?.facebookroyalty.reduce((partialSum, a) => partialSum + a, 0) : labeldata?.facebookroyalty?.reduce((partialSum, a) => partialSum + a, 0)} */}
+                            </Text>
                         </View>
                         <View style={styles.line} />
                         <View style={styles.servicediv}>
                             <Text style={{ color: "white", fontWeight: "bold", fontSize: 13 }}>Amazon Music</Text>
-                            <Text style={styles.digitalmoney}>${user.type === 'Artist' ? artists[0]?.amazonroyalty?.reduce((partialSum, a) => partialSum + a, 0) : labeldata?.amazonroyalty?.reduce((partialSum, a) => partialSum + a, 0)}</Text>
+                            <Text style={styles.digitalmoney}>
+                                ${screendata?.amazonroyalty?.reduce((partialSum, a) => partialSum + a, 0)}
+                                {/* ${user.type === 'Artist' ? artists[0]?.amazonroyalty?.reduce((partialSum, a) => partialSum + a, 0) : labeldata?.amazonroyalty?.reduce((partialSum, a) => partialSum + a, 0)} */}
+                            </Text>
                         </View>
 
                     </View>
 
                     <View style={{ backgroundColor: Secondarycolor(), borderRadius: 10, marginHorizontal: "3%", marginTop: 20 }}>
-                        <TouchableOpacity style={{ padding: 0, position: "absolute", right: 10 }}>
+                        <TouchableOpacity style={{ padding: 0, position: "absolute", right: 10, top: 5 }}>
                             <MaterialCommunityIcons name={"menu-open"} color="gray" size={25} />
                         </TouchableOpacity>
                         <Text style={{ color: "gray", fontSize: 10, marginLeft: 10, marginTop: 10, marginBottom: 10 }}>Top Locations</Text>
@@ -467,10 +672,10 @@ const Viewpayment = () => {
                             <VictoryPie
                                 padAngle={({ datum }) => datum.y}
                                 innerRadius={25}
-                                colorScale={["#000062", "#d81665", "#d81665", "#a2006e", "#ff5757"]}
+                                colorScale={["#000062", "#62006e", "#a2006e", "#d81665", "#ff5757"]}
                                 data={finallocationarray}
                                 height={200}
-                                width={200}
+                                width={235}
                                 style={{
                                     labels: {
                                         fill: "silver",
@@ -479,41 +684,43 @@ const Viewpayment = () => {
 
                                 }}
                             />
-                            <View>
-                                <Text style={{ color: "white", fontWeight: "bold", fontSize: 12 }}></Text>
+                            <View style={{
+                                position: "absolute",
+                                right: 10,
+                                top: 60
+                            }}>
                                 <View style={{
                                     flexDirection: "row",
-                                    marginTop: 10
                                 }}><TouchableOpacity style={{
-                                    height: 15,
-                                    width: 15,
+                                    height: 10,
+                                    width: 10,
                                     backgroundColor: "#ff5757",
-                                    borderRadius: 15,
+                                    borderRadius: 10,
                                     marginRight: 5,
                                     marginTop: 3
-                                }} /><Text style={{ color: "gray" }}>High</Text></View>
+                                }} /><Text style={{ color: "gray", fontSize: 10 }}>High</Text></View>
                                 <View style={{
                                     flexDirection: "row",
                                     marginTop: 2
                                 }}><TouchableOpacity style={{
-                                    height: 15,
-                                    width: 15,
+                                    height: 10,
+                                    width: 10,
                                     backgroundColor: "#a2006e",
-                                    borderRadius: 15,
+                                    borderRadius: 10,
                                     marginRight: 5,
                                     marginTop: 3
-                                }} /><Text style={{ color: "gray" }}>Medium</Text></View>
+                                }} /><Text style={{ color: "gray", fontSize: 10 }}>Medium</Text></View>
                                 <View style={{
                                     flexDirection: "row",
                                     marginTop: 2
                                 }}><TouchableOpacity style={{
-                                    height: 15,
-                                    width: 15,
+                                    height: 10,
+                                    width: 10,
                                     backgroundColor: "#080960",
-                                    borderRadius: 15,
+                                    borderRadius: 10,
                                     marginRight: 5,
                                     marginTop: 3
-                                }} /><Text style={{ color: "gray" }}>Low</Text></View>
+                                }} /><Text style={{ color: "gray", fontSize: 10 }}>Low</Text></View>
 
                             </View>
                         </View>

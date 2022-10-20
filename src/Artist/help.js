@@ -103,11 +103,13 @@ const Help = () => {
                         onChangeText={newText => setmessage(newText)}
                         multiline={true}
                         placeholder="Your question"
+                       
                         maxLength={5000}
                         style={{
                             backgroundColor: "white",
                             height: 150,
-                            marginHorizontal: 20
+                            marginHorizontal: 20,
+                            textAlignVertical:"top"
                         }}
                     />
                     <View>
@@ -131,7 +133,7 @@ const Help = () => {
                             style={{
                                 justifyContent: "center",
                                 alignItems: "center",
-                                paddingVertical: 10,
+                                paddingVertical: 5,
                                 marginHorizontal: 10
                             }}>
                             <Text style={{ color: "gray" }}>Cancel</Text>
@@ -139,7 +141,7 @@ const Help = () => {
                         <TouchableOpacity onPress={sendmessage} style={{
                             justifyContent: "center",
                             alignItems: "center",
-                            paddingVertical: 10,
+                            paddingVertical: 5,
                             backgroundColor: Primarycolor(),
                             paddingHorizontal: 10,
                             borderRadius: 5

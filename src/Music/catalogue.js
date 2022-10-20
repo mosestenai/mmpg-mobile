@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, SafeAreaView, ScrollView, TouchableOpacity, StyleSheet, Dimensions, Alert, Image, TextInput } from "react-native";
+import { View, Text, SafeAreaView, ScrollView, TouchableOpacity, StyleSheet, Dimensions, Alert, Image, TextInput, RefreshControl } from "react-native";
 import { Primarycolor, Secondarycolor, Semisecondarycolor, Viewcolor } from "../Utils/color";
 import { FontAwesome5 } from "../Components/fontawesome5";
 import { useNavigation } from "@react-navigation/native";
@@ -9,6 +9,7 @@ import { Fetchtracksurl } from "../Utils/urls";
 import * as SQLite from 'expo-sqlite';
 import Spinner from "react-native-loading-spinner-overlay/lib";
 import { BallIndicator } from "react-native-indicators";
+import useInterval from 'use-interval'
 
 const db = SQLite.openDatabase('db.Userdbs') // returns Database object
 
@@ -24,6 +25,12 @@ const Catalogue = () => {
     const [loading, setloading] = useState(true)
     const [hint, sethint] = useState('');
     const [counter, setcounter] = useState('');
+    const [refreshing, setRefreshing] = useState(false);
+    const [showsortpopup, setshowsortpopup] = useState(false);
+    const [sort, setsort] = useState('ALL');
+    const [sortedsongs, setsortedsongs] = useState([]);
+    const [nothing, setnothing] = useState(false);
+
 
 
 
@@ -40,7 +47,11 @@ const Catalogue = () => {
         }) // end transaction
     }, []);
 
-  
+    // useInterval(() => {
+    //     fetchtracks(user.token);
+    // }, 5000);
+
+
 
     const fetchtracks = (e) => {
         axios.post(Fetchtracksurl, {
@@ -49,6 +60,19 @@ const Catalogue = () => {
             setloading(false)
             if (!response.data.message) {
                 setsongs(response.data)
+                setsortedsongs(response.data)
+                // if (sort === "ALL") {
+                //     setsortedsongs(response.data)
+                // } else {
+                //     response.data.forEach(element => {
+                       
+                //         if (element.status === sort) {
+                //             songs.push(element)
+                //         }
+                //     });
+                //     setsortedsongs(songs)
+                // }
+
             } else {
                 Alert.alert(
                     "Error",
@@ -72,14 +96,16 @@ const Catalogue = () => {
         });
     }
 
+    
+
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "June", "july", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
 
-    const search = () =>{
+    const search = () => {
         setloading(true)
         axios.post(Fetchtracksurl, {
             token: user.token,
-            hint:hint
+            hint: hint
         }).then(function (response) {
             setloading(false)
             if (!response.data.message) {
@@ -108,9 +134,36 @@ const Catalogue = () => {
 
     }
 
+    const options = [
+        "ALL",
+        "APPROVED",
+        "PENDING",
+        "REJECTED"
+    ]
+
+   
+
+    const onsort = (e) => {
+        if (e === "ALL") {
+            setsortedsongs(songs)
+        } else {
+            songs.forEach(element => {
+                if (element.status === e) {
+                    sortedsongs.push(element)
+                }
+            });
+
+        }
+        setnothing(!nothing)
+    }
+
+
+
+
+
     return (
         <SafeAreaView style={{ backgroundColor: "black", height: deviceHeight }}>
-              {loading &&
+            {loading &&
                 <Spinner
                     visible={true}
                     color='red'
@@ -118,6 +171,33 @@ const Catalogue = () => {
                     customIndicator={<BallIndicator color={Primarycolor()} />}
 
                 />}
+            {showsortpopup ? <Spinner
+                visible={true}
+                color='red'
+                size={70}
+                customIndicator={
+                    <View style={{ width: "80%", height: "30%", backgroundColor: Secondarycolor() }}>
+                        <Text style={{ color: "gray", padding: 5 }}>Filter by</Text>
+                        <ScrollView>
+                            {options.map((val, key) => {
+                                return (
+                                    <TouchableOpacity key={key}
+                                        onPress={() => {
+                                            setsort(val)
+                                            setshowsortpopup(false)
+                                            onsort(val)
+                                        }}
+                                        style={{
+                                            padding: 10,
+                                            backgroundColor: sort === val ? Primarycolor() : Secondarycolor()
+                                        }}>
+                                        <Text style={{ color: "white" }}>{val}</Text>
+                                    </TouchableOpacity>
+                                )
+                            })}
+                        </ScrollView>
+                    </View>}
+            /> : null}
             <View style={styles.fixedview}>
                 <TouchableOpacity onPress={search} style={{ width: "10%" }}>
                     <FontAwesome5 name="search" size={20} color="gray" />
@@ -126,11 +206,11 @@ const Catalogue = () => {
                     style={{
                         height: 40,
                         marginLeft: 20,
-                        marginTop:-10,
+                        marginTop: -10,
                         color: "white",
-                        width: "80%",
-                        justifyContent:"center",
-                        alignItems:"center"
+                        width: "70%",
+                        justifyContent: "center",
+                        alignItems: "center"
                     }}
                     placeholder="Artists/Tracks"
                     onChangeText={newText => sethint(newText)}
@@ -139,14 +219,26 @@ const Catalogue = () => {
                     placeholderTextColor="gray"
 
                 />
-                <TouchableOpacity style={{ width: "10%" }}>
+                <TouchableOpacity style={{ width: "10%", position: "absolute", right: 5, top: 15 }} onPress={() => {
+                    setsortedsongs([])
+                    setshowsortpopup(true)
+                }}>
                     <FontAwesome5 name="sliders-h" size={20} color="gray" />
                 </TouchableOpacity>
             </View>
 
-            <ScrollView>
+            <ScrollView refreshControl={
+                <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={search}
+                    color='#4a43eb'
+                    tintColor="#4a43eb"
+                />
+            }>
                 <View style={{ paddingBottom: 100 }}>
-                    {songs.map((val, key) => {
+                    {sortedsongs.map((val, key) => {
+
+
 
                         return (
                             val.status === 'APPROVED' ?
@@ -194,7 +286,7 @@ const Catalogue = () => {
                                         </View>
                                         <TouchableOpacity style={styles.releasebtn} onPress={() => navigation.navigate('authentication', {
                                             screen: 'viewmusic',
-                                            params: { artist: val.artist, title: val.title, id: val.id, url: val.url }
+                                            params: { artist: val.artist, title: val.title, id: val.id, url: val.url, smartlink: val.smartlink }
                                         })}>
                                             <FontAwesome5 name="arrow-circle-right" color="white" size={15} />
                                         </TouchableOpacity>

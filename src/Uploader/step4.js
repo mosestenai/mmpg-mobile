@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, SafeAreaView, ScrollView, StyleSheet, TouchableOpacity, Dimensions, TextInput, Image,Alert } from "react-native";
+import { View, Text, SafeAreaView, ScrollView, StyleSheet, TouchableOpacity, Dimensions, TextInput, Image, Alert } from "react-native";
 import { Primarycolor, Secondarycolor, Semisecondarycolor, Viewcolor } from "../Utils/color";
 import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
 import EvilIcons from "@expo/vector-icons/EvilIcons";
@@ -55,7 +55,7 @@ const Step4 = () => {
     }, []);
 
     const getartists = (e) => {
-       
+
         axios.post(Getartistdetailsurl, {
             token: e
         }).then(function (response) {
@@ -87,7 +87,7 @@ const Step4 = () => {
                     { text: "OK" }
                 ]
             );
-        } else if(!copyrightyear){
+        } else if (!copyrightyear) {
             Alert.alert(
                 "Error",
                 'Specify copyright year',
@@ -95,7 +95,7 @@ const Step4 = () => {
                     { text: "OK" }
                 ]
             );
-        }else if(!copyrightholder){
+        } else if (!copyrightholder) {
             Alert.alert(
                 "Error",
                 'Enter copyright holder',
@@ -104,7 +104,7 @@ const Step4 = () => {
                 ]
             );
         }
-        else if(!genre){
+        else if (!genre) {
             Alert.alert(
                 "Error",
                 'Specify a genre',
@@ -112,18 +112,19 @@ const Step4 = () => {
                     { text: "OK" }
                 ]
             );
-        }  
+        }
         else {
             navigation.navigate("step5", {
                 releasetitle: route.params.releasetitle,
                 coverimage: route.params.coverimage,
                 audiofile: route.params.audiofile,
                 primaryartist: route.params.primaryartist,
+                featuredartists: route.params.featuredartists,
                 labelname: labelname,
                 copyrightyear: copyrightyear,
                 copyrightholder: copyrightholder,
                 upc: upc,
-                genre:genre
+                genre: genre
             })
 
         }
@@ -171,11 +172,40 @@ const Step4 = () => {
             setlabel([labelname])
         setnothing(!nothing)
     }
+
+    const saveforlater = () => {
+        db.transaction(tx => {
+
+            tx.executeSql('INSERT INTO Tracks (title,imgurl) values (?,?)', [route.params.releasetitle, route.params.coverimage.uri],
+                (txObj, resultSet) => {
+                    Alert.alert(
+                        "Success",
+                        'Saved successfully',
+                        [
+                            { text: "OK" }
+                        ]
+                    );
+                    setTimeout(() => {
+                        navigation.navigate("Home")
+                    }, 3000);
+                },
+                (txObj, error) => {
+                    Alert.alert(
+                        "Error",
+                        error + 'Contact admin',
+                        [
+                            { text: "OK" }
+                        ]
+                    );
+                })
+        }) // end transaction
+
+    }
     return (
         <SafeAreaView style={{ height: deviceheight, backgroundColor: "black" }}>
             <View style={styles.fixedview}>
-                <TouchableOpacity style={styles.savelater}>
-                    <SimpleLineIcons name="logout" color="white" size={25} />
+                <TouchableOpacity style={styles.savelater} onPress={saveforlater}>
+                    <SimpleLineIcons name="logout" color="white" size={25}  />
                     <Text style={{ color: "white", marginLeft: 5, marginTop: 3 }}>Save for Later</Text>
                 </TouchableOpacity>
                 <View style={{
@@ -242,12 +272,12 @@ const Step4 = () => {
 
                         />
                     </View>
-                   {user?.type === 'Label' && <View style={{ flexDirection: "row", marginTop: 10 }}>
+                    {user?.type === 'Label' && <View style={{ flexDirection: "row", marginTop: 10 }}>
                         <Text style={{ color: "white", fontWeight: "bold", marginTop: 15 }}>Release Label</Text>
                         <FontAwesome5 name={"star-of-life"} color={"#f9535e"} style={{ marginTop: 15, marginLeft: 5 }} />
                     </View>}
                     <View>
-                    {user?.type === 'Label' && <View style={styles.addsplitview}>
+                        {user?.type === 'Label' && <View style={styles.addsplitview}>
                             <View style={styles.pickerview}>
                                 <Picker
                                     style={styles.trackpicker}
@@ -256,7 +286,7 @@ const Step4 = () => {
                                     onValueChange={(itemValue, itemIndex) =>
                                         setlabelname(itemValue)
                                     }>
-                                    {Array.isArray(label)&& label?.map((item, index) => {
+                                    {Array.isArray(label) && label?.map((item, index) => {
                                         return (<Picker.Item label={item} value={item} key={index} />)
                                     })}
                                 </Picker>
@@ -280,6 +310,7 @@ const Step4 = () => {
                                 onChangeText={newText => setcopyrightyear(newText)}
                                 defaultValue={copyrightyear}
                                 placeholder="Y Y Y Y"
+                                maxLength={4}
                                 style={styles.leftinput}
                                 placeholderTextColor="gray"
                                 keyboardType="numeric"
@@ -347,8 +378,8 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         width: "55%",
         color: "gray",
-        color:"white",
-        fontSize: 13
+        color: "white",
+        fontSize: 10
     },
     leftinput: {
         backgroundColor: Viewcolor(),
@@ -356,7 +387,7 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         paddingHorizontal: 10,
         width: "40%",
-        color:"white",
+        color: "white",
         fontSize: 13
     },
     fulltextinput: {
@@ -365,7 +396,7 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         color: "white",
         paddingHorizontal: 10,
-        fontSize: 13
+        fontSize: 8
     },
     addtext2: {
         color: Primarycolor(),
@@ -463,14 +494,18 @@ const styles = StyleSheet.create({
     },
     nextbutton: {
         backgroundColor: Primarycolor(),
-        paddingHorizontal: 35,
+        width: 100,
+        justifyContent:"center",
+        alignItems:"center",
         top: 10,
         paddingVertical: 5,
         borderRadius: 5,
     },
     previousbutton: {
         backgroundColor: Primarycolor(),
-        paddingHorizontal: 35,
+        width: 100,
+        justifyContent:"center",
+        alignItems:"center",
         top: 10,
         paddingVertical: 5,
         borderRadius: 5,

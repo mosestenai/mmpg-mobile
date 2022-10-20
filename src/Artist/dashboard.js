@@ -4,7 +4,7 @@ import { Primarycolor, Secondarycolor } from "../Utils/color";
 import Icon from '@expo/vector-icons/FontAwesome5';
 import { useNavigation } from "@react-navigation/native";
 import { Getuserdetails } from './../Utils/getuserdetails';
-import { Getdashboarddetailsurl, Uploadprofilepicurl } from "../Utils/urls";
+import { Getdashboarddetailsurl, readnotificationurl, syncdataurl, Uploadprofilepicurl } from "../Utils/urls";
 import { BallIndicator } from "react-native-indicators";
 import * as ImagePicker from 'expo-image-picker';
 import Spinner from 'react-native-loading-spinner-overlay';
@@ -40,6 +40,7 @@ const Artistdashboard = () => {
     const [pending, setpending] = useState('');
     const [releases, setreleases] = useState('');
     const [notifications, setnotifications] = useState([]);
+    const [unreadnotification, setunreadnotification] = useState('');
     const [bordercolor, setbordercolor] = useState(false);
     const [error, seterror] = useState('');
     const [profile, setProfile] = useState(null);
@@ -63,19 +64,58 @@ const Artistdashboard = () => {
 
     useInterval(() => {
         getuserdashboarddetails(user.token);
-    }, 20000);
+        syncdata(user.token)
+    }, 5000);
+
+    const syncdata =(e) =>{
+        axios.post(syncdataurl, {
+            token: e,
+        }).then(function (response) {
+            if (!response.data.message) {
+                if (response.data.type) {
+                    db.transaction(tx => {
+                        tx.executeSql('UPDATE User set type=? where unid=?',
+                            [response.data.type, user.unid], // passing sql query and parameters:null
+                            // success callback which sends two things Transaction object and ResultSet Object
+                            (tx, results) => {
+                                if (results.rowsAffected > 0) {
+                                } 
+                            },
+                            (txObj, error) => console.log('Error ', error)
+                        ) // end executeSQL
+                    }) // end transaction
+                  
+                } else {
+                }
+            } else {
+            }
+            // 
+        }).catch(function (error) {
+        });
+    }
+
+
 
     const getuserdashboarddetails = (e) => {
-
         axios.post(Getdashboarddetailsurl, {
             token: e,
         }).then(function (response) {
             setloading(false)
             if (!response.data.message) {
                 if (response.data.success) {
+
                     setpending(response.data.pending)
                     setreleases(response.data.releases)
                     setnotifications(response.data?.notifications)
+                    var count = response.data?.notifications.reduce(function(n, val) {
+                        return n + (val.status === "unread");
+                    }, 0);
+                    setunreadnotification(count)
+                    // response.data?.notifications.forEach(element => {
+                    //     if(element.status === 'unread'){
+                    //         unreadnotification.push(element)
+                    //     }
+                    // });
                 } else {
                     seterror("There was an internal error contact admin")
                 }
@@ -85,10 +125,13 @@ const Artistdashboard = () => {
             // 
         }).catch(function (error) {
             setloading(false)
-            console.log(error)
             //if(error.response.status === 401 || error.response.status === 400){}
         });
     }
+
+    
+
+    
 
 
     //Updating profile photo
@@ -193,6 +236,24 @@ const Artistdashboard = () => {
         }
     };
 
+  const  readmessage =(id) =>{
+    var index2 = notifications.findIndex(obj => obj?.unique == id );
+    notifications[index2].status = "read";
+    axios.post(readnotificationurl, {
+        token: user.token,
+        notifications: notifications
+    }).then(function (response) {
+        console.log(response.data)
+        if (!response.data.message) {
+           
+        } else {
+           
+        }
+        // 
+    }).catch(function (error) {
+    });
+  }
+
 
 
     return (
@@ -203,6 +264,7 @@ const Artistdashboard = () => {
                 width: "90%",
                 marginHorizontal: "5%"
             }}>
+                
                 <Text style={{ color: "white", fontSize: 20, width: "60%", marginTop: 10, fontWeight: "bold" }}>Dashboard</Text>
                 <TouchableOpacity
                     onPress={() => navigation.navigate('authentication', { screen: 'uploader' })}
@@ -228,7 +290,7 @@ const Artistdashboard = () => {
                         <View style={{ flexDirection: "row" }}>
                             <TouchableOpacity style={styles.dateview}>
                                 <Text style={styles.textin} >{day}</Text>
-                                <Text style={styles.textin} >{months[month]}</Text>
+                                <Text style={styles.textin2} >{months[month]}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.pendingview}>
                                 {loading ? <BallIndicator style={styles.pendingtext} size={10} color={"white"} /> : <Text style={styles.pendingnumber}>{pending ? pending : '0'}</Text>}
@@ -242,7 +304,7 @@ const Artistdashboard = () => {
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.dateview}>
                                 <Text style={styles.textin} >{year.toString().substring(0, 2)}</Text>
-                                <Text style={styles.textin} >{year.toString().substring(2, 4)}</Text>
+                                <Text style={styles.textin2} >{year.toString().substring(2, 4)}</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -268,8 +330,26 @@ const Artistdashboard = () => {
             </View>
             <View style={{ marginHorizontal: "5%", marginTop: 10 }}>
                 <View style={{ flexDirection: "row" }}>
-                    <Text style={{ fontSize: 20, color: "white", width: "95%", fontWeight: "bold" }}>Notifications</Text>
-                    <TouchableOpacity>
+                    <View style={{ width: "95%",flexDirection:"row" }}>
+                        <Text style={{ fontSize: 20, color: "white", fontWeight: "bold" }}>Notifications</Text>
+                        {notifications?.length > 0 &&   <View style={{
+                            backgroundColor:"#e8005e",
+                            height:15,
+                            width:15,
+                            borderRadius:15,
+                            justifyContent:"center",alignItems:"center"
+
+                        }}>
+                            <Text style={{color:"white",fontSize:10}}>{unreadnotification}</Text>
+                        </View>}
+                    </View>
+
+                    <TouchableOpacity
+                     onPress={() => {
+                     notifications?.length > 0 && navigation.navigate("viewnotifications", {
+                            notifications: notifications
+                        })
+                    }}>
                         <Icon name="angle-right" color="white" size={25} />
                     </TouchableOpacity>
                 </View>
@@ -278,11 +358,12 @@ const Artistdashboard = () => {
                 <View style={{ marginHorizontal: "5%", marginTop: 10, paddingBottom: 100 }}>
                     <View style={styles.notificationscontainer}>
                         {Array.isArray(notifications) ? notifications.reverse().slice(0, 2)?.map((val, key) => {
+                            
                             return (
                                 <TouchableOpacity
                                     key={key}
                                     onPress={() => {
-                                        setbordercolor(true)
+                                        readmessage(val.unique)
                                         navigation.navigate("viewnotifications", {
                                             notifications: notifications
                                         })
@@ -292,22 +373,27 @@ const Artistdashboard = () => {
                                         marginBottom: 10,
                                         flexDirection: "row"
                                     }}>
-                                    <Image
-                                        source={require("./../../assets/gif/icon2.png")}
-                                        style={{
-                                            height: 30,
-                                            width: 30,
-                                            marginLeft: "5%",
-                                            marginTop: 20,
-                                            borderWidth: 1,
-                                            borderColor: bordercolor ? "white" : Primarycolor(),
-                                            // borderColor: val.status === 'unread' ? Primarycolor() : "white",
-                                            borderRadius: 20
-                                        }}
-                                    />
+                                    <View style={{
+                                        marginLeft: "5%",
+                                        marginTop: 20,
+                                        padding: 5,
+                                        borderWidth: 2,
+                                        // borderColor: bordercolor ? "white" : Primarycolor(),
+                                        borderColor: val.status === 'unread' ? Primarycolor() : "white",
+                                        borderRadius: 20
+                                    }}>
+                                        <Image
+                                            source={require("./../../assets/gif/icon.png")}
+                                            style={{
+                                                height: 15,
+                                                width: 15,
+                                            }}
+                                        />
+                                    </View>
+
                                     <View style={{
                                         marginLeft: 20,
-                                        width:"85%",
+                                        width: "85%",
                                         paddingTop: 10
                                     }}>
                                         <Text style={{ color: "gray", fontSize: 10, position: "absolute", right: 2 }}>{val.date}</Text>
@@ -345,7 +431,6 @@ const styles = StyleSheet.create({
         borderRadius: 10
     },
     notificationchild: {
-
     },
     profilepic: {
         backgroundColor: "#1c1c1c",
@@ -360,7 +445,7 @@ const styles = StyleSheet.create({
         marginLeft: 5,
         marginTop: 10,
         width: "40%",
-        height: 140,
+        height: 110,
         borderRadius: 5
     },
     pendingtext: {
@@ -369,21 +454,23 @@ const styles = StyleSheet.create({
     },
     pendingnumber: {
         color: "white",
+        fontWeight: "bold",
         fontSize: 25,
-        paddingVertical: 15,
+        paddingVertical: 10,
         paddingLeft: 15,
         paddingRight: 5
     },
     releasesnumber: {
         color: "white",
         fontSize: 25,
-        paddingVertical: 15,
+        paddingVertical: 5,
+        fontWeight: "bold",
         paddingLeft: 20,
         paddingRight: 0
     },
     releasestext: {
         color: "white",
-        marginTop: 10,
+        marginTop: 20,
         marginLeft: 10
     },
     realeasesview: {
@@ -391,14 +478,16 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         width: "65%",
         borderRadius: 5,
-        marginRight: 5
+        marginRight: 5,
+        height: 50
     },
     pendingview: {
         backgroundColor: "#1c1c1c",
         flexDirection: "row",
         marginLeft: 10,
         width: "55%",
-        borderRadius: 5
+        borderRadius: 5,
+        height: 50
     },
     contaner: {
         backgroundColor: "black",
@@ -409,12 +498,19 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         paddingHorizontal: 15,
-        paddingVertical: 5,
-        borderRadius: 5
+        paddingVertical: 0,
+        borderRadius: 5,
+        height: 50
     },
     textin: {
         color: "white",
         fontWeight: "bold",
+        fontSize: 20
+    },
+    textin2: {
+        color: "white",
+        fontWeight: "bold",
+        marginTop: -8,
         fontSize: 20
     }
 })

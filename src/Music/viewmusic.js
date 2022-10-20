@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, Dimensions, TouchableOpacity, Image, Alert } from "react-native";
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, Dimensions, TouchableOpacity, Image, Alert, Share, Linking } from "react-native";
 import { FontAwesome5 } from "../Components/fontawesome5";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { Primarycolor, Secondarycolor } from "../Utils/color";
@@ -8,7 +8,12 @@ import { Fontisto } from "../Components/fontisto";
 import { Ionicons } from "../Components/ioniicons";
 import Spinner from "react-native-loading-spinner-overlay/lib";
 import { BallIndicator } from "react-native-indicators";
-
+import * as Clipboard from 'expo-clipboard';
+import axios from "axios";
+import { deletesongurl } from "../Utils/urls";
+import { Getuserdetails } from "../Utils/getuserdetails";
+import * as WebBrowser from 'expo-web-browser';
+import { LinearGradient } from 'expo-linear-gradient';
 
 var deviceHeight = Dimensions.get('window').height
 var deviceWidth = Dimensions.get('window').width
@@ -17,13 +22,97 @@ const Viewmusic = () => {
     const navigation = useNavigation();
     const route = useRoute();
     const [confirmpopup, setconfirmpopup] = useState(false);
+    const [loading, setloading] = useState(false);
+    const [result, setResult] = useState('');
+    const smartlink = route.params.smartlink;
+    const user = Getuserdetails();
+
+    //handling share 
+    const onShare = async () => {
+        try {
+            const result = await Share.share({
+                message:
+                    'mmpgmusic smartlink|.' + route.params.artist + '/' + route.params.title + ' ' + smartlink,
+            });
+            if (result.action === Share.sharedAction) {
+                if (result.activityType) {
+                    // shared with activity type of result.activityType
+                } else {
+                    // shared
+                }
+            } else if (result.action === Share.dismissedAction) {
+                // dismissed
+            }
+        } catch (error) {
+            alert(error.message);
+        }
+    };
+
+
+
+
+    //copy link to clipboard
+    const copyToClipboard = async () => {
+        await Clipboard.setStringAsync(smartlink);
+        alert("Link copied to clipboard")
+    };
+
+    //open link
+    const openlink = async () => {
+        let result = await WebBrowser.openBrowserAsync(smartlink);
+        setResult(result);
+        // Linking.openURL(smartlink)
+    }
 
     const requesttakedown = () => {
-
+        setconfirmpopup(false)
+        setloading(true)
+        axios.post(deletesongurl, {
+            token: user.token,
+            id: route.params.id
+        }).then(function (response) {
+            setloading(false)
+            if (!response.data.message) {
+                Alert.alert(
+                    "Success",
+                    response.data.success,
+                    [
+                        { text: "OK" }
+                    ]
+                );
+                navigation.navigate("Home")
+            } else {
+                Alert.alert(
+                    "Error",
+                    response.data.message,
+                    [
+                        { text: "OK" }
+                    ]
+                );
+            }
+            // 
+        }).catch(function (error) {
+            setloading(false)
+            //if(error.response.status === 401 || error.response.status === 400){}
+            Alert.alert(
+                "Error",
+                "there was an error fetching tracks",
+                [
+                    { text: "OK" }
+                ]
+            );
+        });
     }
 
     return (
         <SafeAreaView style={{ backgroundColor: "black", height: deviceHeight }}>
+            {loading &&
+                <Spinner
+                    visible={true}
+                    color='blue'
+                    size={40}
+                    customIndicator={<BallIndicator color={Primarycolor()} />}
+                />}
             {confirmpopup &&
                 <Spinner
                     visible={true}
@@ -33,7 +122,7 @@ const Viewmusic = () => {
                         <View style={{ backgroundColor: "white", padding: 15 }}>
                             <Text style={{ fontWeight: "bold", color: Primarycolor() }}>Are you sure you want to take down  this music? this action cannot be undone</Text>
                             <View style={{ marginTop: 10, flexDirection: "row" }}>
-                                <TouchableOpacity onPress={()=>setconfirmpopup(false)} style={{
+                                <TouchableOpacity onPress={() => setconfirmpopup(false)} style={{
                                     backgroundColor: Primarycolor(),
                                     padding: 10,
                                     borderRadius: 5,
@@ -41,7 +130,7 @@ const Viewmusic = () => {
                                 }}>
                                     <Text style={{ color: "white" }}>Cancel</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity style={{
+                                <TouchableOpacity onPress={requesttakedown} style={{
                                     backgroundColor: Primarycolor(),
                                     padding: 10,
                                     borderRadius: 5,
@@ -55,44 +144,54 @@ const Viewmusic = () => {
                 />}
             <View style={styles.fixedview}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={{ width: "10%" }}>
-                    <FontAwesome5 name="angle-left" color={"gray"} size={25} />
+                    <FontAwesome5 name="angle-left" color={"white"} size={25} />
                 </TouchableOpacity>
                 <View style={{ width: "80%" }}>
-                    <Text style={{ alignSelf: "center", color: "gray" }}>{route.params.artist}/{route.params.title}</Text>
+                    <Text style={{ alignSelf: "center", color: "white" }}>{route.params.artist}/{route.params.title}</Text>
                 </View>
 
             </View>
             <View style={styles.imageview}>
-
                 <Image
                     source={{ uri: route.params.url }}
                     style={{
                         height: "100%",
-                        width: "95%",
-                        marginHorizontal: 10,
-                        borderRadius: 200
+                        width: deviceWidth,
                     }}
                 />
             </View>
-
-            <View style={styles.contentview}>
-                <TouchableOpacity>
-                    <Text style={{ color: Primarycolor() }}>SMARTLINK</Text>
-                </TouchableOpacity>
-                <Text style={styles.sharemusictext}>Share your music {`\n`}with the world</Text>
-
-                <View style={{ flexDirection: "row", marginTop: 25 }}>
-                    <TouchableOpacity style={styles.buttonshare}>
-                        <Ionicons name="ios-arrow-redo-outline" color={"white"} size={25} />
+            <LinearGradient
+                colors={['rgba(0,0,0,0.8)', 'transparent']}
+            />
+            <LinearGradient
+                // Button Linear Gradient
+                colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.8)', 'black']}
+                style={{
+                    position: "absolute",
+                    width: deviceWidth,
+                    paddingTop:290
+                }}>
+                <View style={styles.contentview}>
+                    <TouchableOpacity>
+                        <Text style={{ color: Primarycolor() }}>SMARTLINK</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.buttonshare}>
-                        <Ionicons name={"copy-outline"} color={"white"} size={25} />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.buttonshare}>
-                        <Fontisto name="world-o" color={"white"} size={25} />
-                    </TouchableOpacity>
+                    <Text style={styles.sharemusictext}>Share your music {`\n`}with the world</Text>
+                    <View style={{ flexDirection: "row", marginTop: 25 }}>
+                        <TouchableOpacity style={styles.buttonshare} onPress={onShare}>
+                            <Ionicons name="ios-arrow-redo-outline" color={"white"} size={25} />
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.buttonshare} onPress={copyToClipboard}>
+                            <Ionicons name={"copy-outline"} color={"white"} size={25} />
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.buttonshare} onPress={openlink}>
+                            <Fontisto name="world-o" color={"white"} size={25} />
+                        </TouchableOpacity>
+                    </View>
                 </View>
-            </View>
+            </LinearGradient>
+
+
+
             <View style={styles.bottomCenter}>
                 <TouchableOpacity onPress={() => navigation.navigate("Home")}>
                     <FontAwesome5 name="home" color={"white"} size={20} />
@@ -119,7 +218,7 @@ const Viewmusic = () => {
 
 const styles = StyleSheet.create({
     imageview: {
-        height: deviceHeight / 2
+        height: 320
     },
     bottomCenter: {
         backgroundColor: Secondarycolor(),
@@ -147,12 +246,14 @@ const styles = StyleSheet.create({
         fontSize: 25
     },
     contentview: {
-        marginHorizontal: "10%"
+        marginHorizontal: "5%"
     },
     fixedview: {
         paddingHorizontal: "5%",
         paddingVertical: "5%",
-        flexDirection: "row"
+        flexDirection: "row",
+        position: "absolute",
+        zIndex: 1
     }
 })
 

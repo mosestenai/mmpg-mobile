@@ -12,6 +12,9 @@ import Checkbox from 'expo-checkbox';
 import axios from "axios";
 import { Postsongurl, Uploadreleasecoverimageurl, Uploadsongurl } from "../Utils/urls";
 import { Getuserdetails } from "../Utils/getuserdetails";
+import * as SQLite from 'expo-sqlite';
+
+const db = SQLite.openDatabase('db.Userdbs') // returns Database object
 //import { Calendar } from 'react-native-plain-calendar';
 
 var devicewidth = Dimensions.get('window').width;
@@ -39,20 +42,23 @@ const Step6 = () => {
     const audioslength = route.params.tracks.length;
     const [updatedaudiolength, setupdatedaudiolength] = useState(0);
     const [showcustomreleasedate, setshowcustomreleasedate] = useState(true);
+    const [nothing, setnothing] = useState(false);
     function onSelected({ selected, selectedStart, selectedEnd }) {
         // Your code
     }
-   
+
 
 
 
 
     var currentdate = new Date();
+  
     var year = currentdate.getFullYear();
     var month = (currentdate.getMonth() + 1).toString().length > 1 ? (currentdate.getMonth() + 1) : "0" + (currentdate.getMonth() + 1)
-    var day = currentdate.getDay().toString().length > 1 ? currentdate.getDay() : "0" + currentdate.getDay();
+    var day = currentdate.getDate().toString().length > 1 ? currentdate.getDate() : "0" + currentdate.getDate();
     var daydate = (parseInt(day) + 14);
     var safedate = year + "-" + month + "-" + daydate;
+   
 
     const uploadeverything = () => {
         if (plan === 'custom' && !preorderdate || !releasedate) {
@@ -82,14 +88,15 @@ const Step6 = () => {
         } else {
             setloading(true)
             uploadimage();
-           
+
         }
     }
 
-    const uploadsong = (e) =>{
-        
 
-    const gh =  route.params.tracks.forEach(element => {
+
+    const uploadsong = (e) => {
+
+        route.params.tracks.forEach(element => {
             axios.post(Postsongurl, {
                 tracktitle: element.tracktitle,
                 trackadvice: element.advice,
@@ -101,7 +108,7 @@ const Step6 = () => {
                 primaryartists: element.primaryartist,
                 featuredartists: element.featuredartist,
                 releasetitle: route.params.releasetitle,
-                labelname:route.params.labelname? route.params.labelname : "",
+                labelname: route.params.labelname ? route.params.labelname : "",
                 releasecopyrightholder: route.params.copyrightholder,
                 releasecopyrightyear: route.params.copyrightyear,
                 releaseupc: route.params.upc,
@@ -116,7 +123,7 @@ const Step6 = () => {
             }).then(function (response) {
                 if (!response.data.message) {
                     if (response.data.id) {
-                       uploadaudio(element.trackuri,element.trackfilename,response.data.id)
+                        uploadaudio(element.trackuri, element.trackfilename, response.data.id)
                     } else {
                         setloading(false)
                         Alert.alert(
@@ -139,6 +146,7 @@ const Step6 = () => {
                 }
                 // 
             }).catch(function (error) {
+                console.log(error)
                 setloading(false)
                 Alert.alert(
                     "Error",
@@ -151,7 +159,7 @@ const Step6 = () => {
             });
         });
 
-       
+
     }
 
     const uploadimage = async () => {
@@ -178,7 +186,7 @@ const Step6 = () => {
             if (json.url) {
                 uploadsong(json.url)
             } else {
-                
+
                 Alert.alert(
                     "Error",
                     'There was an internal error uploading cover image',
@@ -199,7 +207,9 @@ const Step6 = () => {
         }
     }
 
-    const uploadaudio = async (uri, name,id) => {
+   
+
+    const uploadaudio = async (uri, name, id) => {
         let formData = new FormData();
 
         formData.append(
@@ -210,7 +220,7 @@ const Step6 = () => {
         }
         );
 
-        let response = await fetch(Uploadsongurl +"?id=" + id, {
+        let response = await fetch(Uploadsongurl + "?id=" + id, {
             method: 'post',
             body: formData,
             headers: {
@@ -221,16 +231,22 @@ const Step6 = () => {
         if (!json.message) {
             setloading(false)
             if (json.success) {
+                setupdatedaudiolength(parseInt(updatedaudiolength) + 1)
+                setnothing(!nothing)
+                if (updatedaudiolength === (parseInt(audioslength) - 1)) {
+                    Alert.alert(
+                        "Success",
+                        'Sumitted successfully pending approval',
+                        [
+                            { text: "OK" }
+                        ]
+                    )
+                    setTimeout(() => {
+                        navigation.navigate("Music")
+                    }, 3000);
+                }
 
-                setupdatedaudiolength(parseInt(updatedaudiolength)+1)
-                // Alert.alert(
-                //     "Success",
-                //     'Release submitted sucessfully',
-                //     [
-                //         { text: "OK" }
-                //     ]
-                // );
-                
+
             } else {
                 Alert.alert(
                     "Error",
@@ -252,26 +268,43 @@ const Step6 = () => {
         }
     }
 
-    if(updatedaudiolength === (audioslength-1)){
-        Alert.alert(
-            "Success",
-            'Sumitted successfully pending approval',
-            [
-                { text: "OK" }
-            ]
-        )
-        setTimeout(() => {
-            navigation.navigate("Music")
-        }, 3000);
+
+
+
+    const saveforlater = () => {
+        db.transaction(tx => {
+
+            tx.executeSql('INSERT INTO Tracks (title,imgurl) values (?,?)', [route.params.releasetitle, route.params.coverimage.uri],
+                (txObj, resultSet) => {
+                    Alert.alert(
+                        "Success",
+                        'Saved successfully',
+                        [
+                            { text: "OK" }
+                        ]
+                    );
+                    setTimeout(() => {
+                        navigation.navigate("Home")
+                    }, 3000);
+                },
+                (txObj, error) => {
+                    Alert.alert(
+                        "Error",
+                        error + 'Contact admin',
+                        [
+                            { text: "OK" }
+                        ]
+                    );
+                })
+        }) // end transaction
+
     }
 
 
-  
-  
     return (
         <SafeAreaView style={{ height: deviceheight, backgroundColor: "black" }}>
             <View style={styles.fixedview}>
-                <TouchableOpacity style={styles.savelater}>
+                <TouchableOpacity style={styles.savelater} onPress={saveforlater}>
                     <SimpleLineIcons name="logout" color="white" size={25} />
                     <Text style={{ color: "white", marginLeft: 5, marginTop: 3 }}>Save for Later</Text>
                 </TouchableOpacity>
@@ -328,6 +361,7 @@ const Step6 = () => {
                             <Text style={{ color: "white", marginTop: 10, fontSize: 10 }}>Plan your release and pre-order</Text>
                             <Text style={{ color: "white", fontSize: 10 }}>dates around your marketing</Text>
                             <Text style={{ color: "white", fontSize: 10 }}>and promotions.</Text>
+                            <View>
                             <View style={{ flexDirection: "row", marginTop: 10 }}>
                                 <FontAwesome5 name={"check"} color={"white"} style={{ marginTop: 3 }} />
                                 <Text style={{ color: "white", fontWeight: "bold", marginLeft: 5 }}> Release date</Text>
@@ -336,6 +370,8 @@ const Step6 = () => {
                                 <FontAwesome5 name={"check"} color={"white"} style={{ marginTop: 3 }} />
                                 <Text style={{ color: "white", fontWeight: "bold", marginLeft: 5 }}> Pre-order plan</Text>
                             </View>
+                            </View>
+                           
                         </TouchableOpacity>
 
                     </View>
@@ -570,14 +606,18 @@ const styles = StyleSheet.create({
     },
     nextbutton: {
         backgroundColor: Primarycolor(),
-        paddingHorizontal: 35,
+        width: 100,
+        justifyContent:"center",
+        alignItems:"center",
         top: 10,
         paddingVertical: 5,
         borderRadius: 5,
     },
     previousbutton: {
         backgroundColor: Primarycolor(),
-        paddingHorizontal: 35,
+        width: 100,
+        justifyContent:"center",
+        alignItems:"center",
         top: 10,
         paddingVertical: 5,
         borderRadius: 5,

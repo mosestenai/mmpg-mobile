@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { View } from "react-native";
+import { Image, Text, TouchableOpacity, View } from "react-native";
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -39,6 +39,8 @@ import Step5 from "./src/Uploader/step5";
 import Step6 from "./src/Uploader/step6";
 import Help from "./src/Artist/help";
 import * as SQLite from 'expo-sqlite';
+import Redirect from "./src/Redirect/redirect";
+import Editplit from "./src/Payment/editsplit";
 
 const db = SQLite.openDatabase('db.Userdbs') // returns Database object
 
@@ -131,55 +133,58 @@ function PaymentStackScreen() {
 
 function HomeTabs() {
   return (
-    <Tab.Navigator
+    // <View style={{position:"absolute",bottom:0,width:"100%"}}>
+      <Tab.Navigator
 
-      screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
+        screenOptions={({ route }) => ({
+          tabBarIcon: ({ focused, color, size }) => {
+            let iconName;
 
-          if (route.name === 'Home') {
-            iconName = focused ? 'home' : 'home';
-          } else if (route.name === 'Account') {
-            iconName = focused ? 'user-alt' : 'user-alt';
-          } else if (route.name === 'Music') {
-            iconName = focused ? 'music' : 'music';
-          } else if (route.name === 'Payment') {
-            iconName = focused ? 'dollar-sign' : 'dollar-sign';
-          }
-          else if (route.name === 'Notification') {
-            iconName = focused ? 'bell' : 'bell';
-          }
+            if (route.name === 'Home') {
+              iconName = focused ? 'home' : 'home';
+            } else if (route.name === 'Account') {
+              iconName = focused ? 'user-alt' : 'user-alt';
+            } else if (route.name === 'Music') {
+              iconName = focused ? 'music' : 'music';
+            } else if (route.name === 'Payment') {
+              iconName = focused ? 'dollar-sign' : 'dollar-sign';
+            }
+            else if (route.name === 'Notification') {
+              iconName = focused ? 'bell' : 'bell';
+            }
 
-          // You can return any component that you like here!
-          return <Icon name={iconName} size={20} color={color} />;
-        },
-        tabBarInactiveTintColor: 'white',
-        headerShown: false,
-        tabBarShowLabel: false,
-        tabBarHideOnKeyboard: true,
-        tabBarStyle: { backgroundColor: Viewcolor() },
-        tabBarActiveTintColor: Primarycolor()
+            // You can return any component that you like here!
+            return route.name === 'Notification' ?
+              <Image source={require("./assets/images/icon2.png")} style={{ height: 25, width: 25 }} /> :
+              <Icon name={iconName} size={20} color={color} />;
+          },
+          tabBarInactiveTintColor: 'white',
+          headerShown: false,
+          tabBarShowLabel: false,
+          tabBarHideOnKeyboard: true,
+          tabBarStyle: { backgroundColor: Viewcolor() },
+          tabBarActiveTintColor: Primarycolor()
 
 
-      })}
+        })}
 
-    >
-      <Tab.Screen name='Home' component={HomeStackScreen} />
-      <Tab.Screen name="Account" component={AccountStackScreen} />
-      <Tab.Screen name="Music" component={MusicStackScreen} />
-      <Tab.Screen name="Payment" component={PaymentStackScreen} />
-      <Tab.Screen name="Notification" component={PaymentStackScreen} />
- 
-    </Tab.Navigator>
+      >
+        <Tab.Screen name='Home' component={HomeStackScreen} />
+        <Tab.Screen name="Account" component={AccountStackScreen} />
+        <Tab.Screen name="Music" component={MusicStackScreen} />
+        <Tab.Screen name="Payment" component={PaymentStackScreen} />
+        <Tab.Screen name="Notification" component={Redirect} />
+        
 
+      </Tab.Navigator>
   );
 }
 
 function Aunthenticationstackscreen() {
- 
 
-  return ( 
-    <Authenticationstack.Navigator screenOptions={{ headerShown: false }} initialRouteName= "Homescreen">
+
+  return (
+    <Authenticationstack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Homescreen">
       <Authenticationstack.Screen name="Homescreen" component={Homescreen} />
       <Authenticationstack.Screen name="login" component={Loginscreen} />
       <Authenticationstack.Screen name="register" component={Registerscreen} />
@@ -190,6 +195,7 @@ function Aunthenticationstackscreen() {
       <Authenticationstack.Screen name="uploader" component={Uploader} />
       <Authenticationstack.Screen name="paymentdetails" component={Paymentdetails} />
       <Authenticationstack.Screen name="addsplit" component={Addsplit} />
+      <Authenticationstack.Screen name="editsplit" component={Editplit} />
       <Authenticationstack.Screen name="details" component={Details} />
       <Authenticationstack.Screen name="notificationsettings" component={Notificationssettings} />
       <Authenticationstack.Screen name="membershipsettings" component={Membershipsettings} />
@@ -216,7 +222,6 @@ export default function Nav() {
     checktype();
   }, []);
 
-
   const checktype = () => {
     db.transaction(tx => {
       // sending 4 arguments in executeSql
@@ -236,14 +241,14 @@ export default function Nav() {
     }) // end transaction
   }
 
- 
+
 
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }} >
         {typeexists ?
-        <Stack.Screen name="default2" component={HomeTabs} options={({ route }) => ({ headerTitle: getHeaderTitle(route), })} /> :
-        <Stack.Screen name="authentication2" component={Aunthenticationstackscreen} />}
+          <Stack.Screen name="default2" component={HomeTabs} options={({ route }) => ({ headerTitle: getHeaderTitle(route), })} /> :
+          <Stack.Screen name="authentication2" component={Aunthenticationstackscreen} />}
         {/* <Stack.Screen name="homescreen" component={Homescreen}  /> */}
         <Stack.Screen name="default" component={HomeTabs} />
         <Stack.Screen name="authentication" component={Aunthenticationstackscreen} />

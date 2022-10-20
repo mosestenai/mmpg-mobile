@@ -6,6 +6,8 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import { FontAwesome } from "../Components/fontawesome";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { VictoryPie } from 'victory-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import Spinner from "react-native-loading-spinner-overlay/lib";
 //import { VictoryPie } from "victory-pie";
 import {
     PieChart,
@@ -35,6 +37,9 @@ const Viewsong = () => {
     const [graphdata, setgraphdata] = useState(route.params.data?.streamshistory);
     const [focused, setfocused] = useState('total');
     const [nothing, setnothing] = useState(false);
+    const [streamstoshow, setstreamstoshow] = useState(route.params.data?.streamshistory?.reduce((a, b) => a + b, 0));
+    const [editby, seteditby] = useState('Lifetime');
+    const [showpickermenu, setshowpickermenu] = useState(false);
 
     //locations
     const australia = route.params.data?.locationstreams[0]
@@ -43,7 +48,7 @@ const Viewsong = () => {
     const uk = route.params.data?.locationstreams[3]
     const us = route.params.data?.locationstreams[4]
     const streams = route.params.data?.locationstreams
-    
+
     const widthAndHeight = 250
     const series = [123, 321, 123, 789, 537]
     const sliceColor = ['#F44336', '#2196F3', '#FFEB3B', '#4CAF50', '#FF9800']
@@ -64,7 +69,7 @@ const Viewsong = () => {
             <>
                 <LineChart
                     data={{
-                        labels: ['Ja', 'Fe', 'Ma', 'Ap', 'Ma', 'jun', 'jul', 'Au', 'Sep', 'Oc', 'Nov', 'De'],
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'jun', 'jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
                         datasets: [
                             {
                                 data: graphdata,
@@ -73,6 +78,13 @@ const Viewsong = () => {
                     }}
                     width={deviceWidth - 20} // from react-native
                     height={220}
+                    verticalLabelRotation={-60}
+                    withInnerLines={true}
+                    withVerticalLines={false}
+                    withHorizontalLines={true}
+                    withDots={false}
+                    withOuterLines={false}
+                    color={"white"}
                     // yAxisLabel={'Rs'}
                     chartConfig={{
                         backgroundColor: Primarycolor(),
@@ -82,6 +94,7 @@ const Viewsong = () => {
                         decimalPlaces: 1, // optional, defaults to 2dp
                         //color: (opacity = 255) => `rgba(0, 0, 0, ${opacity})`,
                         color: (opacity = 255) => Primarycolor(),
+                        labelColor: (opacity = 255) => "white",
                         style: {
                             borderRadius: 16,
                             borderBottomLeftRadius: 5
@@ -98,73 +111,165 @@ const Viewsong = () => {
             </>
         );
     };
-
+ //calculate whole value to be under 10
     const calculate = (val, all) => {
-        var result = all.map(function (x) { 
-            return parseInt(x, 10); 
-          });
-          
-        var gh = Math.round((val / result.reduce((partialSum, a) => partialSum + a,)) * 10)
+        var result = all.map(function (x) {
+            return parseInt(x, 10);
+        });
+
+        var gh = (val / result.reduce((partialSum, a) => partialSum + a,)) * 10
+        return gh;
+    }
+
+    //calculate percentage
+    const calculate2 = (val, all) => {
+        var result = all.map(function (x) {
+            return parseInt(x, 10);
+        });
+
+        var gh = Math.round((val / result.reduce((partialSum, a) => partialSum + a,)) * 100)
         return gh;
     }
 
     const locationarray = [
-        { x: "Australia", y: calculate(australia, streams) },
-        { x: "Europe", y: calculate(europe, streams) },
-        { x: "Canada", y: calculate(canada, streams) },
-        { x: "Uk", y: calculate(uk, streams) },
-        { x: "USA", y: calculate(us, streams) }
+        { x: `Australia(${calculate2(australia, streams)}%)`, y: calculate(australia, streams) },
+        { x: `Europe(${calculate2(europe, streams)}%)`, y: calculate(europe, streams) },
+        { x: `Canada(${calculate2(canada, streams)}%)`, y: calculate(canada, streams) },
+        { x: `Uk(${calculate2(uk, streams)}%)`, y: calculate(uk, streams) },
+        { x: `USA(${calculate2(us, streams)}%)`, y: calculate(us, streams) }
     ]
     const finallocationarray = locationarray.sort(function (a, b) {
         return parseFloat(a.y) - parseFloat(b.y);
     });
 
-    
+
+    const sorts = ["Last 28 days", "Last 90 days", "Lifetime"]
+
+    const sort = (val) => {
+        var currentdate = new Date();
+        const month = currentdate.getMonth()
+
+
+        if (val === 'Last 28 days') {
+            setstreamstoshow(graphdata[month])
+        } else if (val === "Last 90 days") {
+            const thirdmonth = graphdata[month - 2]
+            const secondmonth = graphdata[month - 1]
+            const firstmonth = graphdata[month]
+
+            const final = parseInt(thirdmonth) + parseInt(secondmonth) + parseInt(firstmonth);
+            setstreamstoshow(final)
+        } else {
+            setstreamstoshow(graphdata.reduce((a, b) => a + b, 0))
+        }
+
+    }
 
     return (
         <SafeAreaView style={{ backgroundColor: "black", height: deviceHeight }}>
+            {showpickermenu ? <Spinner
+                visible={true}
+                color='red'
+                size={70}
+                customIndicator={
+                    <View style={{ width: "80%", backgroundColor: Secondarycolor() }}>
+                        <Text style={{ color: "gray", padding: 5 }}>Sort criteria</Text>
+                        <ScrollView>
+                            {sorts.map((val, key) => {
+                                return (
+                                    <TouchableOpacity key={key}
+                                        onPress={() => {
+                                            seteditby(val)
+                                            setshowpickermenu(false)
+                                            sort(val)
+                                        }}
+                                        style={{
+                                            padding: 10,
+                                            backgroundColor: editby === val ? Primarycolor() : Secondarycolor()
+                                        }}>
+                                        <Text style={{ color: "white" }}>{val}</Text>
+                                    </TouchableOpacity>
+                                )
+                            })}
+                        </ScrollView>
+                    </View>}
+            /> : null}
             <View style={{ paddingBottom: 20 }}>
-                <View style={{ flexDirection: "row", marginTop: 20, marginHorizontal: "5%" }}>
-                    <View style={{ width: "16%" }}>
-                        <TouchableOpacity onPress={() => navigation.goBack()}>
-                            <Icon name="angle-left" color="white" size={25} />
-                        </TouchableOpacity>
-                    </View>
-                    <Image
-                        source={{ uri: screendata.url }}
-                        style={{
-                            height: 200,
-                            width: 200,
-                            borderRadius: 200
-                        }}
-                    />
+                <TouchableOpacity style={{
+                    position: "absolute",
+                    top: 10,
+                    left: 10,
+                    zIndex: 1
+                }} onPress={() => navigation.goBack()}>
+                    <Icon name="angle-left" color="white" size={25} />
+                </TouchableOpacity>
+                <Image
+                    source={{ uri: screendata.url }}
+                    style={{
+                        height: 280,
+                        width: deviceWidth
+                    }}
+                />
 
-                </View>
-                <View style={{ flexDirection: "row", marginHorizontal: "5%" }}>
+                <LinearGradient
+                    colors={['rgba(0,0,0,0.8)', 'transparent']}
+                />
+                <LinearGradient
+                    // Button Linear Gradient
+                    colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.8)', 'black']}
+                    style={{
+                        flexDirection: "row",
+                        paddingHorizontal: "5%",
+                        position: "absolute",
+                        height: 60,
+                        width: deviceWidth,
+                        top: 220,
+                    }}>
                     <View style={{ width: "70%" }}>
                         <Text style={{ color: "white", fontWeight: "bold" }}>{screendata?.artist}/{screendata?.title} </Text>
                         <TouchableOpacity style={{ flexDirection: "row" }}>
-                            <Icon name="headphones-alt" color="gray" style={{ marginTop: 5 }} />
-                            <Text style={{ color: "gray", marginLeft: 5 }}>{screendata.totalstreams?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</Text>
+                            <Icon name="headphones-alt" color="white" style={{ marginTop: 5 }} />
+                            <Text style={{ color: "white", marginLeft: 5 }}>{screendata.totalstreams?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</Text>
                         </TouchableOpacity>
                     </View>
                     <TouchableOpacity onPress={() => navigation.navigate("Music")} style={{ flexDirection: "row", marginTop: 25 }}>
-                        <Text style={{ color: "gray", fontSize: 10 }}>CATALOGUE</Text>
-                        <Icon name="long-arrow-alt-right" color="gray" style={{ marginLeft: 5 }} />
+                        <Text style={{ color: "white", fontSize: 10 }}>CATALOGUE</Text>
+                        <Icon name="long-arrow-alt-right" color="white" style={{ marginLeft: 5 }} />
                     </TouchableOpacity>
-
-                </View>
+                </LinearGradient>
             </View>
 
             <ScrollView>
+                <View
+                    style={{
+                        flexDirection: "row",
+                        alignSelf: "flex-end",
+                        right: 10,
 
-                <View style={{ marginBottom: 100, marginTop: 15 }}>
+                    }}>
+                    <Text style={{ color: Primarycolor(), fontSize: 12 }}>{editby}</Text>
+                    <TouchableOpacity onPress={() => setshowpickermenu(true)} style={{
+                        height: 20,
+                        width: 20,
+                        justifyContent: "center",
+                        marginLeft: 5,
+                        alignItems: "center",
+                        borderRadius: 5,
+                        borderWidth: 1,
+                        borderColor: Primarycolor()
+                    }}>
+                        <Icon name="angle-down" color={Primarycolor()} />
+                    </TouchableOpacity>
+                </View>
+                <View style={{ marginBottom: 100, marginTop: 5 }}>
                     <View style={styles.headerscroll}>
                         <TouchableOpacity
                             onPress={() => {
                                 setfocused("total")
                                 setgraphdata(screendata.streamshistory)
                                 setnothing(!nothing)
+                                setstreamstoshow(screendata.totalstreams?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","))
+                                seteditby("Lifetime")
                             }}
                             style={{ marginRight: 20 }}>
                             <Text style={{ color: focused == 'total' ? Primarycolor() : "white" }}>Total</Text>
@@ -174,6 +279,8 @@ const Viewsong = () => {
                                 setfocused("spotify")
                                 setgraphdata(screendata.spotifystreams)
                                 setnothing(!nothing)
+                                seteditby("Lifetime")
+                                setstreamstoshow(screendata.spotifystreams?.reduce((a, b) => a + b, 0))
                             }}
                             style={{ marginRight: 20, flexDirection: "row" }}>
                             <FontAwesome name="spotify" color={focused == 'spotify' ? Primarycolor() : "white"} size={15} style={{ marginTop: 3, marginRight: 3 }} />
@@ -184,6 +291,8 @@ const Viewsong = () => {
                                 setfocused("apple")
                                 setgraphdata(screendata.applestreams)
                                 setnothing(!nothing)
+                                seteditby("Lifetime")
+                                setstreamstoshow(screendata.applestreams?.reduce((a, b) => a + b, 0))
                             }}
                             style={{ marginRight: 0, flexDirection: "row" }}>
                             <Icon name="apple-alt" color={focused == 'apple' ? Primarycolor() : "white"} style={{ marginTop: 3, marginRight: 3 }} />
@@ -191,7 +300,14 @@ const Viewsong = () => {
                         </TouchableOpacity>
 
                     </View>
-                    <MyBezierLineChart />
+                    <View>
+                        <View style={{ position: "absolute", right: 20, bottom: 60, zIndex: 1 }}>
+                            <Text style={{ color: "white", fontSize: 10 }}>TOTAL</Text>
+                            <Text style={{ color: "white", fontSize: 8 }}>{streamstoshow}</Text>
+                        </View>
+                        <MyBezierLineChart />
+
+                    </View>
                     <View style={{ alignSelf: "center", flexDirection: "row" }}>
                         <Icon name="headphones-alt" color={Primarycolor()} style={{ marginTop: 0 }} />
                         <Text style={{ color: "gray", marginLeft: 5, fontSize: 10 }}>Streams</Text>
@@ -201,10 +317,10 @@ const Viewsong = () => {
                         <VictoryPie
                             padAngle={({ datum }) => datum.y}
                             innerRadius={25}
-                            colorScale={["#000062", "#d81665", "#d81665", "#a2006e", "#ff5757"]}
+                            colorScale={["#000062","#62006e","#a2006e","#d81665",  "#ff5757"]}
                             data={finallocationarray}
                             height={200}
-                            width={200}
+                            width={235}
                             style={{
                                 labels: {
                                     fill: "silver",
@@ -215,41 +331,41 @@ const Viewsong = () => {
                             }}
                         />
                         <View>
-                            <Text style={{ color: "white", fontWeight: "bold", fontSize: 12 }}>LOCATIONS</Text>
+                            <Text style={{ color: "white", fontWeight: "bold", fontSize: 10 ,marginTop:15}}>LOCATIONS</Text>
                             <View style={{
                                 flexDirection: "row",
-                                marginTop: 10
+                                marginTop: 50
                             }}><TouchableOpacity style={{
-                                height: 15,
-                                width: 15,
+                                height: 10,
+                                width: 10,
                                 backgroundColor: "#ff5757",
-                                borderRadius: 15,
+                                borderRadius: 10,
                                 marginRight: 5,
                                 marginTop: 3
-                            }} /><Text style={{ color: "gray" }}>High</Text></View>
+                            }} /><Text style={{ color: "gray",fontSize:10 }}>High</Text></View>
                             <View style={{
                                 flexDirection: "row",
                                 marginTop: 2
                             }}><TouchableOpacity style={{
-                                height: 15,
-                                width: 15,
+                                height: 10,
+                                width: 10,
                                 backgroundColor: "#a2006e",
-                                borderRadius: 15,
+                                borderRadius: 10,
                                 marginRight: 5,
                                 marginTop: 3
-                            }} /><Text style={{ color: "gray" }}>Medium</Text></View>
+                            }} /><Text style={{ color: "gray" ,fontSize:10}}>Medium</Text></View>
                             <View style={{
                                 flexDirection: "row",
                                 marginTop: 2
                             }}><TouchableOpacity style={{
-                                height: 15,
-                                width: 15,
+                                height: 10,
+                                width: 10,
                                 backgroundColor: "#080960",
-                                borderRadius: 15,
+                                borderRadius: 10,
                                 marginRight: 5,
                                 marginTop: 3
-                            }} /><Text style={{ color: "gray" }}>Low</Text></View>
-                            <View style={{ flexDirection: "row", marginTop: 90 }}>
+                            }} /><Text style={{ color: "gray",fontSize:10 }}>Low</Text></View>
+                            <View style={{ flexDirection: "row", marginTop: 60 }}>
                                 <Icon name="headphones-alt" color={"gray"} style={{ marginTop: 0 }} />
                                 <Text style={{ color: "gray", marginLeft: 5, fontSize: 10 }}>Streams</Text>
                             </View>

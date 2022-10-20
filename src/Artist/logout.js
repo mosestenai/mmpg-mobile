@@ -76,7 +76,8 @@ const Logout = () => {
                     <Text style={{
                         marginTop: 10,
                         fontSize: 10,
-                        color: "gray"
+                        color: "gray",
+                        alignSelf:"center"
                     }}>Are you sure you want to logout from this account?</Text>
                 </View>
                 <View style={{ flexDirection: "row", marginTop: 0 }}>

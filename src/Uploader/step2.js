@@ -7,6 +7,11 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { FontAwesome5 } from "../Components/fontawesome5";
 import * as DocumentPicker from 'expo-document-picker';
 import { MaterialCommunityIcons } from "../Components/materialcommunity";
+import * as SQLite from 'expo-sqlite';
+import { UserProps } from "victory-core";
+import { Getuserdetails } from "../Utils/getuserdetails";
+
+const db = SQLite.openDatabase('db.Userdbs') // returns Database object
 
 var devicewidth = Dimensions.get('window').width;
 var deviceheight = Dimensions.get('window').height;
@@ -19,6 +24,7 @@ const Step2 = () => {
     const [audios, setaudios] = useState([]);
     const [showaudios, setshowaudios] = useState(false);
     const [nothing, setnothing] = useState(false);
+    const user = Getuserdetails();
 
 
     const pickDocument = async () => {
@@ -32,8 +38,8 @@ const Step2 = () => {
                 ]
             );
         } else {
-            console.log(result)
-           // const index = audios.indexOf(result.name);
+            // console.log(result)
+            // const index = audios.indexOf(result.name);
             var index = audios.findIndex(obj => obj?.name == result.name);
 
             if (index > -1) { // only splice array when item is found
@@ -45,8 +51,8 @@ const Step2 = () => {
                     ]
                 );
             } else {
-                
-                const result2 ={
+
+                const result2 = {
                     trackuri: result.uri,
                     trackfilename: result.name
                 }
@@ -95,10 +101,55 @@ const Step2 = () => {
 
     }
 
+    const saveforlater = () => {
+        db.transaction(tx => {
+
+            tx.executeSql('INSERT INTO Tracks (title,imgurl) values (?,?)', [route.params.releasetitle, route.params.coverimage.uri],
+                (txObj, resultSet) => {
+                    Alert.alert(
+                        "Success",
+                        'Saved successfully',
+                        [
+                            { text: "OK" }
+                        ]
+                    );
+                    setTimeout(() => {
+                        navigation.navigate("Home")
+                    }, 3000);
+                },
+                (txObj, error) => {
+                    Alert.alert(
+                        "Error",
+                        error + 'Contact admin',
+                        [
+                            { text: "OK" }
+                        ]
+                    );
+                })
+        }) // end transaction
+
+    }
+
+    // const checkstatus = () =>{
+
+    //     if(user.type === 'Artist' && audios.length > 0){
+    //         Alert.alert(
+    //             "Error",
+    //             'Upgrade membership to upload more tracks',
+    //             [
+    //                 { text: "OK" }
+    //             ]
+    //         );
+    //     }else{
+    //         pickDocument()
+    //     }
+    // }
+
+
     return (
         <SafeAreaView style={{ height: deviceheight, backgroundColor: "black" }}>
             <View style={styles.fixedview}>
-                <TouchableOpacity style={styles.savelater}>
+                <TouchableOpacity style={styles.savelater} onPress={saveforlater}>
                     <SimpleLineIcons name="logout" color="white" size={25} />
                     <Text style={{ color: "white", marginLeft: 5, marginTop: 3 }}>Save for Later</Text>
                 </TouchableOpacity>
@@ -129,8 +180,8 @@ const Step2 = () => {
                         <Text style={{ color: "white", position: "absolute", right: 0, fontSize: 13 }}>33%</Text>
                     </View>
                     <View style={{ marginTop: 10 }}>
-                        <TouchableOpacity style={styles.browse2button} onPress={pickDocument}>
-                            <FontAwesome5 name={"plus"} color={"white"} style={{ marginRight: 5, marginLeft: 5 }} />
+                        <TouchableOpacity style={styles.browse2button} onPress={ pickDocument}>
+                            <FontAwesome5 name={"plus"} color={"white"} style={{ marginRight: 5, marginLeft: 5, marginTop: 2 }} />
                             <Text style={{ color: "white", fontSize: 12 }}>BROWSE TRACKS</Text>
                         </TouchableOpacity>
                         <View style={styles.linehr} />
@@ -254,14 +305,18 @@ const styles = StyleSheet.create({
     },
     nextbutton: {
         backgroundColor: Primarycolor(),
-        paddingHorizontal: 35,
+        width: 100,
+        justifyContent:"center",
+        alignItems:"center",
         top: 10,
         paddingVertical: 5,
         borderRadius: 5,
     },
     previousbutton: {
         backgroundColor: Primarycolor(),
-        paddingHorizontal: 35,
+        width: 100,
+        justifyContent:"center",
+        alignItems:"center",
         top: 10,
         paddingVertical: 5,
         borderRadius: 5,

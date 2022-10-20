@@ -1,7 +1,7 @@
 import React from "react";
 
 
-const base_url = "https://mmpg.eazistey.co.ke/API_WEB_HOOKS/";
+const base_url = "https://adminmmpg.eazistey.co.ke/API_WEB_HOOKS/";
 
 //user Create account url
 export const Registeruserurl = base_url + "Common/register.php";
@@ -53,3 +53,17 @@ export const Fetchuserstatements = base_url + "Payments/fetch_payments_history.p
 
 //checkpaymentstatus
 export const checkpaymentstatusurl = base_url + "Artists/check_funding_status.php";
+
+//delete song
+export const deletesongurl = base_url + "Artists/delete_song_api.php";
+
+//cancel and delete membership url
+export const cancelanddeleteurl = base_url + "Artists/cancel_and_delete_api.php";
+
+//read notification
+export const readnotificationurl = base_url + "Artists/read_notification.php";
+//update splits
+export const updatesplitsurl = base_url + "Artists/update_split.php";
+
+//sync data
+export const syncdataurl = base_url + "Artists/sync_appdata.php";

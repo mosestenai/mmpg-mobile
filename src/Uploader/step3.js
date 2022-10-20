@@ -11,6 +11,9 @@ import axios from "axios";
 import { Getuserdetails } from "./../Utils/getuserdetails";
 import { Getartistdetailsurl } from "../Utils/urls";
 import * as SQLite from 'expo-sqlite';
+import Spinner from "react-native-loading-spinner-overlay/lib";
+import { BallIndicator } from "react-native-indicators";
+import { MaterialCommunityIcons } from "../Components/materialcommunity";
 
 const db = SQLite.openDatabase('db.Userdbs') // returns Database object
 
@@ -32,7 +35,12 @@ const Step3 = () => {
     const [nothing, setnothing] = useState(false);
     const [loading, setloading] = useState(true);
     const [gottendata, setgottendata] = useState(false);
+    const [featuredrole, setfeaturedrole] = useState('Featured Artist');
+    const [typedfeaturedartist, settypedfeaturedartist] = useState('');
 
+    const [featuredartists, setfeaturedartists] = useState([]);
+
+    
 
     useEffect(() => {
 
@@ -41,7 +49,8 @@ const Step3 = () => {
             tx.executeSql('SELECT * FROM User', null, // passing sql query and parameters:null
                 // success callback which sends two things Transaction object and ResultSet Object
                 (txObj, { rows: { _array } }) => {
-                   _array[0].type === 'Artist' && getartists(_array[0].token)
+                    // _array[0].type === 'Artist' ? getartists(_array[0].token)
+                    getartists(_array[0])
                 },
                 (txObj, error) => console.log('Error ', error)
             ) // end executeSQL
@@ -50,15 +59,20 @@ const Step3 = () => {
 
     const getartists = (e) => {
         axios.post(Getartistdetailsurl, {
-            token: e
+            token: e.token
         }).then(function (response) {
             setloading(false)
             if (!response.data.message) {
                 if (response.data[0].name) {
-                    artists.push(response.data[0].name)
-                    setartist(response.data[0].name)
+                    // artists.push(response.data[0].name) 
+                    response.data.forEach(element => {
+                        artists.push(element.name)
+                    });
+                    if (e.type === "Artist") {
+                        setgottendata(true)
+                        setartist(response.data[0].name)
+                    }
                     setnothing(!nothing)
-                    setgottendata(true)
                 }
 
             } else {
@@ -72,13 +86,19 @@ const Step3 = () => {
         });
     }
 
+  
+
 
     const pushartist = () => {
-        artists.length < 1 &&
-
-            setartists([artist])
+        artists.push(artist)
         setnothing(!nothing)
+
+        // artists.length < 1 &&
+
+        //     setartists([artist])
+
     }
+
 
     const gotonextpage = () => {
 
@@ -91,21 +111,98 @@ const Step3 = () => {
                 ]
             );
         } else {
-            navigation.navigate("step4", {
-                releasetitle: route.params.releasetitle,
-                coverimage: route.params.coverimage,
-                audiofile: route.params.audiofile,
-                primaryartist: artist,
-            })
 
+            if(route.params.audiofile.length < 2 && !artist){
+                Alert.alert(
+                    "Error",
+                    'Enter a primary artist to continue',
+                    [
+                        { text: "OK" }
+                    ]
+                );
+            }else{
+                navigation.navigate("step4", {
+                    releasetitle: route.params.releasetitle,
+                    coverimage: route.params.coverimage,
+                    audiofile: route.params.audiofile,
+                    featuredartists: featuredartists,
+                    primaryartist: artist,
+                })
+            }
         }
+    }
+
+
+    const saveforlater = () => {
+        db.transaction(tx => {
+
+            tx.executeSql('INSERT INTO Tracks (title,imgurl) values (?,?)', [route.params.releasetitle, route.params.coverimage.uri],
+                (txObj, resultSet) => {
+                    Alert.alert(
+                        "Success",
+                        'Saved successfully',
+                        [
+                            { text: "OK" }
+                        ]
+                    );
+                    setTimeout(() => {
+                        navigation.navigate("Home")
+                    }, 3000);
+                },
+                (txObj, error) => {
+                    Alert.alert(
+                        "Error",
+                        error + 'Contact admin',
+                        [
+                            { text: "OK" }
+                        ]
+                    );
+                })
+        }) // end transaction
+
+    }
+
+    const featuredroles = ["Featured Artist", "With"];
+
+    const onpushfeaturedartists = () => {
+        const artistto = {
+            name: typedfeaturedartist,
+            role: featuredrole
+        }
+        if (!featuredrole) {
+            Alert.alert(
+                "Error",
+                'Select artist role',
+                [
+                    { text: "OK" }
+                ]
+            );
+        } else {
+            featuredartists.push(artistto)
+                setnothing(!nothing)
+            // if (user.type === 'Artist') {
+            //     featuredartists.push(artistto)
+            // } else {
+            //     featuredartists.push(e)
+                
+            //     setdonothing(!donothing)
+            // }
+        }
+
     }
 
 
     return (
         <SafeAreaView style={{ height: deviceheight, backgroundColor: "black" }}>
+            {loading &&
+                <Spinner
+                    visible={true}
+                    color='blue'
+                    size={40}
+                    customIndicator={<BallIndicator color={Primarycolor()} />}
+                />}
             <View style={styles.fixedview}>
-                <TouchableOpacity style={styles.savelater}>
+                <TouchableOpacity style={styles.savelater} onPress={saveforlater}>
                     <SimpleLineIcons name="logout" color="white" size={25} />
                     <Text style={{ color: "white", marginLeft: 5, marginTop: 3 }}>Save for Later</Text>
                 </TouchableOpacity>
@@ -151,6 +248,7 @@ const Step3 = () => {
                             <SwitchToggle
                                 switchOn={on}
                                 onPress={() => {
+                                    setartist("")
                                     user.type === 'Label' ? seton(!on) :
                                         Alert.alert(
                                             "Error",
@@ -182,7 +280,7 @@ const Step3 = () => {
                         </View>
                     </View>
                     <View style={styles.linehr} />
-                    {user.type !== 'Label' && !loading &&
+                    {!loading &&
                         on ? <View>
                         <View style={{ flexDirection: "row", marginTop: 10 }}>
                             <Text style={{ color: "white", fontWeight: "bold", marginTop: 15 }}>Primary Artist</Text>
@@ -207,8 +305,7 @@ const Step3 = () => {
                                 <TextInput
                                     placeholder="Artist name"
                                     placeholderTextColor={"gray"}
-                                    onChangeText={newText =>
-                                        !gottendata && setartist(newText)}
+                                    onChangeText={newText => !gottendata && setartist(newText)}
                                     onSubmitEditing={pushartist}
                                     style={styles.artistinput}
                                     value={artist}
@@ -222,10 +319,54 @@ const Step3 = () => {
                             <View style={styles.linehr} />
                             <Text style={{ color: "white", fontWeight: "bold" }}>Featured Artists</Text>
                             <Text style={{ color: "gray", fontSize: 8 }}>Their names will appear on the release</Text>
-                            <TouchableOpacity style={styles.addartistbutton}>
+                            <View style={{ marginTop: 5 }}>
+                                {featuredartists?.map((val, key) => {
+                                    const deleteaudio = (val) => {
+                                        const index = featuredartists.indexOf(val);
+                                        setnothing(!nothing)
+                                        if (index > -1) { // only splice array when item is found
+                                            featuredartists.splice(index, 1); // 2nd parameter means remove one item only
+                                        }
+                                    }
+
+                                    return val ?
+                                        <View style={{ flexDirection: "row", margin: 5 }}>
+                                            <Text style={{ fontSize: 10, color: "white", width: "90%" }}>{val?.name}({val.role})</Text>
+                                            <TouchableOpacity onPress={() => deleteaudio(val)}>
+                                                <MaterialCommunityIcons name="delete-forever" color={"white"} size={25} />
+                                            </TouchableOpacity>
+                                        </View> : null
+
+                                })}
+                            </View>
+                            <Text style={{ color: "white", fontWeight: "bold", marginTop: 0 }}>Role</Text>
+                            <View style={styles.addsplitview}>
+                                <View style={styles.pickerview}>
+                                    <Picker
+                                        style={styles.trackpicker}
+                                        dropdownIconColor={"white"}
+                                        selectedValue={featuredrole}
+                                        onValueChange={(itemValue, itemIndex) => setfeaturedrole(itemValue)}>
+                                        {featuredroles.map((item, index) => {
+                                            return (<Picker.Item label={item} value={item} key={index} />)
+                                        })}
+                                    </Picker>
+                                </View>
+                                <TextInput
+                                    placeholder="Please enter name"
+                                    placeholderTextColor={"gray"}
+                                    style={styles.artistinput}
+                                    onSubmitEditing={() => {
+                                        onpushfeaturedartists(typedfeaturedartist)
+                                    }}
+                                    value={typedfeaturedartist}
+                                    onChangeText={newText => { settypedfeaturedartist(newText) }}
+                                />
+                            </View>
+                            {/* <TouchableOpacity style={styles.addartistbutton}>
                                 <FontAwesome5 name={"plus"} color={Primarycolor()} />
                                 <Text style={styles.addtext2}>ADD ANOTHER ARTIST</Text>
-                            </TouchableOpacity>
+                            </TouchableOpacity> */}
                         </View>
                     </View> : null}
 
@@ -340,14 +481,18 @@ const styles = StyleSheet.create({
     },
     nextbutton: {
         backgroundColor: Primarycolor(),
-        paddingHorizontal: 35,
+        width: 100,
+        justifyContent: "center",
+        alignItems: "center",
         top: 10,
         paddingVertical: 5,
         borderRadius: 5,
     },
     previousbutton: {
         backgroundColor: Primarycolor(),
-        paddingHorizontal: 35,
+        width: 100,
+        justifyContent: "center",
+        alignItems: "center",
         top: 10,
         paddingVertical: 5,
         borderRadius: 5,

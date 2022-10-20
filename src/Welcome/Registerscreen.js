@@ -185,6 +185,7 @@ const Registerscreen = () => {
                                     onChangeText={newText => setemail(newText)}
                                     defaultValue={email}
                                     placeholderTextColor="gray"
+                                    autoCapitalize='none'
 
                                 />
                             </View>
@@ -200,6 +201,8 @@ const Registerscreen = () => {
                                     onChangeText={newText => setcemail(newText)}
                                     defaultValue={cemail}
                                     placeholderTextColor="gray"
+                                    autoCapitalize='none'
+
 
                                 />
                             </View>

@@ -21,7 +21,7 @@ const primarycolor = Primarycolor();
 
 
 
-const Membershipsettings = () => {
+const Redirect = () => {
 
     const url = images.getstartedvideo.uri;
     const navigation = useNavigation();
@@ -35,38 +35,38 @@ const Membershipsettings = () => {
 
     const image = require('./../../assets/images/member.png')
 
-    const cancelmembership = () =>{
+    const cancelmembership = () => {
         setconfirmpopup(false)
-            setloading(true)
-            axios.post(cancelanddeleteurl, {
-                token: user.token,
-                action: 'CANCEL'
-            }).then(function (response) {
-                if (!response.data.message) {
-                    handleLogout();
-                } else {
-                    setloading(false)
-                    Alert.alert(
-                        "Error",
-                        response.data.message,
-                        [
-                            { text: "OK" }
-                        ]
-                    );
-                }
-                // 
-            }).catch(function (error) {
+        setloading(true)
+        axios.post(cancelanddeleteurl, {
+            token: user.token,
+            action: 'CANCEL'
+        }).then(function (response) {
+            if (!response.data.message) {
+                handleLogout();
+            } else {
                 setloading(false)
-                //if(error.response.status === 401 || error.response.status === 400){}
                 Alert.alert(
                     "Error",
-                    "there was an error fetching tracks",
+                    response.data.message,
                     [
                         { text: "OK" }
                     ]
                 );
-            });
-        
+            }
+            // 
+        }).catch(function (error) {
+            setloading(false)
+            //if(error.response.status === 401 || error.response.status === 400){}
+            Alert.alert(
+                "Error",
+                "there was an error fetching tracks",
+                [
+                    { text: "OK" }
+                ]
+            );
+        });
+
     }
 
     const handleLogout = () => {
@@ -109,7 +109,7 @@ const Membershipsettings = () => {
 
     return (
         <SafeAreaView style={{ backgroundColor: "black", height: deviceHeight }}>
-             {loading &&
+            {loading &&
                 <Spinner
                     visible={true}
                     color='blue'
@@ -145,12 +145,12 @@ const Membershipsettings = () => {
                         </View>}
 
                 />}
-            <View style={styles.fixedview}>
+            {/* <View style={styles.fixedview}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={{ width: "10%" }}>
                     <FontAwesome5 name="angle-left" color={"white"} size={25} />
                 </TouchableOpacity>
 
-            </View>
+            </View> */}
             <ScrollView ref={scrollViewRef}
                 onContentSizeChange={() => scrollViewRef.current.scrollTo({ x: 2, y: 2, animated: true })}
                 horizontal={true}>
@@ -242,7 +242,9 @@ const Membershipsettings = () => {
                                             Membership Status: Active
                                         </Text>
                                         <TouchableOpacity
-                                            onPress={()=>setconfirmpopup(true)}
+                                            onPress={() => navigation.navigate('authentication', {
+                                                screen: 'started'
+                                            })}
                                             style={{
                                                 backgroundColor: "white",
                                                 position: "absolute",
@@ -254,7 +256,7 @@ const Membershipsettings = () => {
                                                 borderRadius: 5
                                             }}>
                                             <Text style={{ color: Primarycolor(), fontWeight: "bold" }}>
-                                                Cancel
+                                                Update
                                             </Text>
                                         </TouchableOpacity>
                                     </View>
@@ -346,7 +348,9 @@ const Membershipsettings = () => {
                                             Membership Status: Active
                                         </Text>
                                         <TouchableOpacity
-                                           onPress={()=>setconfirmpopup(true)}
+                                            onPress={() => navigation.navigate('authentication', {
+                                                screen: 'started'
+                                            })}
                                             style={{
                                                 backgroundColor: "white",
                                                 position: "absolute",
@@ -358,7 +362,7 @@ const Membershipsettings = () => {
                                                 borderRadius: 5
                                             }}>
                                             <Text style={{ color: Primarycolor(), fontWeight: "bold" }}>
-                                                Cancel
+                                                Update
                                             </Text>
                                         </TouchableOpacity>
                                     </View>
@@ -512,4 +516,64 @@ const styles = StyleSheet.create({
     },
 });
 
-export default Membershipsettings;
+export default Redirect;
+
+
+
+
+// import React, { useState, useEffect } from "react";
+// import { View, Text, SafeAreaView, ScrollView, TouchableOpacity, StyleSheet, Dimensions, Alert, Image, TextInput, RefreshControl } from "react-native";
+// import { Primarycolor, Secondarycolor, Semisecondarycolor, Viewcolor } from "../Utils/color";
+// import { FontAwesome5 } from "../Components/fontawesome5";
+// import { useNavigation } from "@react-navigation/native";
+// import axios from "axios";
+// import { Getuserdetails } from "../Utils/getuserdetails";
+// import { Fetchtracksurl } from "../Utils/urls";
+// import * as SQLite from 'expo-sqlite';
+// import Spinner from "react-native-loading-spinner-overlay/lib";
+// import { BallIndicator } from "react-native-indicators";
+
+// const db = SQLite.openDatabase('db.Userdbs') // returns Database object
+
+
+// const deviceHeight = Dimensions.get('window').height;
+// const deviceWidth = Dimensions.get('window').width;
+
+// const Redirect = () => {
+
+//     const navigation = useNavigation();
+//     const user = Getuserdetails();
+//     const [songs, setsongs] = useState([]);
+//     const [loading, setloading] = useState(true)
+//     const [hint, sethint] = useState('');
+//     const [counter, setcounter] = useState('');
+//     const [refreshing, setRefreshing] = useState(false);
+
+
+
+//     return (
+//         <SafeAreaView style={{ backgroundColor: "black", height: deviceHeight }}>
+//             <View style={{
+//                 flex: 1,
+//                 justifyContent: "center",
+//                 alignItems: "center"
+//             }}>
+//                 <TouchableOpacity onPress={() => navigation.navigate('authentication', {
+//                     screen: 'started'
+//                 })}
+//                 style={{
+//                     backgroundColor:Primarycolor(),
+//                     padding:10,
+//                     borderRadius:5
+//                 }}
+//                 >
+//                     <Text style={{color:"white"}}>UPGRADE MEMBERSHIP</Text>
+//                 </TouchableOpacity>
+//             </View>
+
+//         </SafeAreaView >
+//     )
+// }
+
+
+// export default Redirect;

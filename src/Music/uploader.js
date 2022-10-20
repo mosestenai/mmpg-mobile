@@ -8,10 +8,12 @@ import { MaterialCommunityIcons } from "../Components/materialcommunity";
 import * as Updates from "expo-updates";
 import * as SQLite from 'expo-sqlite';
 import axios from "axios";
-import { checkpaymentstatusurl, Fetchtracksurl } from "../Utils/urls";
+import { checkpaymentstatusurl, deletesongurl, Fetchtracksurl } from "../Utils/urls";
 import Spinner from "react-native-loading-spinner-overlay/lib";
 import { BallIndicator } from "react-native-indicators";
 import { Getuserdetails } from "../Utils/getuserdetails";
+import useInterval from 'use-interval'
+import * as WebBrowser from 'expo-web-browser';
 
 const db = SQLite.openDatabase('db.Userdbs') // returns Database object
 
@@ -27,11 +29,14 @@ const Uploader = () => {
     const user = Getuserdetails();
     const [loading, setloading] = useState(true);
     const [responsestatus, setresponsestatus] = useState(false);
+    const [drafts, setdrafts] = useState([]);
     const [linkview, setlinkview] = useState(false);
     const [test, settest] = useState('');
     const [songs, setsongs] = useState([]);
+    const [Result, setResult] = useState(null);
+    const [nothing, setnothing] = useState(false);
     useEffect(() => {
-
+        checkdraft();
         db.transaction(tx => {
             // sending 4 arguments in executeSql
             tx.executeSql('SELECT * FROM User', null, // passing sql query and parameters:null
@@ -45,6 +50,9 @@ const Uploader = () => {
         }) // end transaction
 
     }, []);
+    useInterval(() => {
+        checkpayment2();
+    }, 10000);
 
 
 
@@ -72,6 +80,33 @@ const Uploader = () => {
         });
     }
 
+    //check payment periodically
+    const checkpayment2 = (e) => {
+        axios.post(checkpaymentstatusurl, {
+            token: user.token,
+            status: "true"
+        }).then(function (response) {
+            setloading(false)
+            setresponsestatus(true)
+            if (!response.data.message) {
+                if (response.data.expires.length > 3) {
+                    setpaid(true)
+                    setlinkview(false)
+                } else {
+                    setpaid(false)
+                }
+            } else {
+                setlinkview(true)
+            }
+            // 
+        }).catch(function (error) {
+            setloading(false)
+            //if(error.response.status === 401 || error.response.status === 400){}
+
+        });
+    }
+
+
     const startupload = () => {
         if (!responsestatus) {
             Alert.alert(
@@ -88,6 +123,23 @@ const Uploader = () => {
                 setlinkview(true)
             }
         }
+    }
+
+    //check draft
+    const checkdraft = () => {
+        db.transaction(tx => {
+            // sending 4 arguments in executeSql
+            tx.executeSql('SELECT * FROM Tracks', null, // passing sql query and parameters:null
+                // success callback which sends two things Transaction object and ResultSet Object
+                (txObj, { rows: { _array } }) => {
+                    if (_array[0]?.title) {
+                        setdrafts(_array)
+                    }
+                },
+                // failure callback which sends two things Transaction object and Error
+                (txObj, error) => console.log('Error ', error)
+            ) // end executeSQL
+        }) // end transaction
     }
 
     const fetchtracks = (e) => {
@@ -120,6 +172,67 @@ const Uploader = () => {
         });
     }
 
+    const handledelete = (val) => {
+        db.transaction(tx => {
+            tx.executeSql('DELETE FROM Tracks WHERE id=?', [val],
+                (txObj, resultSet) => {
+                    if (resultSet.rowsAffected > 0) {
+                        checkdraft()
+                        setnothing(!nothing)
+                    }
+                }),
+                (txObj, error) => console.log('Error ', error)
+        })
+    };
+
+    const requesttakedown = (id) => {
+        setloading(true)
+        axios.post(deletesongurl, {
+            token: user.token,
+            id: id
+        }).then(function (response) {
+            setloading(false)
+            if (!response.data.message) {
+                setsongs([])
+                fetchtracks(user.token)
+                Alert.alert(
+                    "Success",
+                    response.data.success,
+                    [
+                        { text: "OK" }
+                    ]
+                );
+
+            } else {
+                Alert.alert(
+                    "Error",
+                    response.data.message,
+                    [
+                        { text: "OK" }
+                    ]
+                );
+            }
+            // 
+        }).catch(function (error) {
+            setloading(false)
+            //if(error.response.status === 401 || error.response.status === 400){}
+            Alert.alert(
+                "Error",
+                "there was an error fetching tracks",
+                [
+                    { text: "OK" }
+                ]
+            );
+        });
+    }
+
+
+     //open link
+     const openlink = async () => {
+        let result = await WebBrowser.openBrowserAsync('https://mmpg.eazistey.co.ke/' + user.token + '/' + user.type);
+        setResult(result);
+        // Linking.openURL(smartlink)
+    }
     return (
         <SafeAreaView style={{ backgroundColor: "black", height: deviceHeight }}>
             {loading &&
@@ -137,16 +250,27 @@ const Uploader = () => {
                     customIndicator={
                         <View style={{
                             backgroundColor: "white",
-                            padding: 15
+                            padding: 15,
+                            borderRadius:5
                         }}>
                             <Text style={{ fontWeight: "bold" }}>Pending payment status!!</Text>
+                            <View style={{flexDirection:"row"}}>
                             <TouchableOpacity
-                                onPress={() =>  Linking.openURL('https://mmpg.eazistey.co.ke/' + user.token)}
-                                style={{ backgroundColor: Primarycolor(), padding: 10, marginTop: 5, borderRadius: 5 }}
+                                onPress={()=>setlinkview(false)}
+                                style={{ backgroundColor: Primarycolor(), padding: 5, marginTop: 5, borderRadius: 5,marginRight:5}}
+
+                            >
+                                <Text style={{ color: "white" }}>LATER</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                onPress={openlink}
+                                style={{ backgroundColor: Primarycolor(), padding: 5, marginTop: 5, borderRadius: 5 }}
 
                             >
                                 <Text style={{ color: "white" }}>PROCEED TO PAYMENT</Text>
                             </TouchableOpacity>
+                            </View>
+                            
                         </View>}
                 />}
             <View style={styles.fixedview}>
@@ -176,7 +300,7 @@ const Uploader = () => {
             </View>
             <View style={{ marginHorizontal: "3%", paddingTop: 10 }}>
                 <Text style={{ fontWeight: "bold", color: "white", fontSize: 10 }}>Your releases</Text>
-                <Text style={{ fontSize: 5, color: "gray", marginTop: 5 }}>Below are your in progress and submitted releases. Once we have approved them, they will move from here to your Catalogue.</Text>
+                <Text style={{ fontSize: 10, color: "gray", marginTop: 5 }}>Below are your in progress and submitted releases. Once we have approved them, they will move from here to your Catalogue.</Text>
                 <ScrollView>
                     <View style={{ marginBottom: 500 }}>
 
@@ -208,10 +332,10 @@ const Uploader = () => {
                                         </View>
                                         <Text style={styles.songname}></Text>
                                         <Text style={styles.releasedatetext}>Release date:{`\n`}{val.date}</Text>
-                                        <TouchableOpacity style={styles.modifytext} onPress={() => navigation.navigate('authentication', { screen: 'step1',params:{data:val} })}>
+                                        <TouchableOpacity style={styles.modifytext} onPress={() => navigation.navigate('authentication', { screen: 'step1', params: { data: val } })}>
                                             <Text style={{ color: Primarycolor(), fontWeight: "bold", fontSize: 10 }}>Modify</Text>
                                         </TouchableOpacity>
-                                        <TouchableOpacity style={styles.deletebtn}>
+                                        <TouchableOpacity style={styles.deletebtn} onPress={()=>requesttakedown(val.id)}>
                                             <MaterialCommunityIcons name="delete-forever" color={"white"} size={25} />
                                         </TouchableOpacity>
                                     </View>
@@ -219,32 +343,49 @@ const Uploader = () => {
                             )
                         })}
 
+                        {drafts.map((val, key) => {
+
+                            return (
+                                <View style={styles.releasesviews} key={key}>
+                                    <View style={{ flexDirection: "row" }}>
+                                        <View style={styles.dot2} />
+                                        <View style={{ marginLeft: 10, width: "70%" }}>
+                                            <Text style={styles.querytext}>Draft</Text>
+                                            <Text style={styles.querymessage}>Your release is being built and has not yet been submitted.</Text>
+                                        </View>
+                                        <Text style={styles.numbertext}>(1)</Text>
+                                        <TouchableOpacity style={styles.arrowdown}><FontAwesome size={25} name="angle-down" color="gray" /></TouchableOpacity>
+                                    </View>
+                                    <View style={styles.line} />
+                                    <View style={{ flexDirection: "row", marginTop: 5 }}>
+                                        {val.imgurl ?
+                                            <View style={styles.songcover}>
+                                                <Image
+                                                    source={{ uri: val.imgurl }}
+                                                    style={{
+                                                        height: "100%",
+                                                        width: "100%",
+                                                    }}
+                                                />
+                                            </View> :
+                                            <View style={styles.songcover2} />
+                                        }
+
+                                        <Text style={styles.songname}>{val.title}</Text>
+                                        <Text style={styles.releasedatetext}>Draft</Text>
+                                        <TouchableOpacity style={styles.modifytext} onPress={() => navigation.navigate('authentication', { screen: 'step1', params: { data: val } })}>
+                                            <Text style={{ color: Primarycolor(), fontWeight: "bold", fontSize: 10 }}>Continue</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity style={styles.deletebtn} onPress={() => handledelete(val.id)}>
+                                            <MaterialCommunityIcons name="delete-forever" color={"white"} size={25} />
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+
+                            )
+                        })}
 
 
-                        {/* <View style={styles.releasesviews}>
-                            <View style={{ flexDirection: "row" }}>
-                                <View style={styles.dot2} />
-                                <View style={{ marginLeft: 10, width: "70%" }}>
-                                    <Text style={styles.querytext}>Draft</Text>
-                                    <Text style={styles.querymessage}>Your release is being built and has not yet been submitted.</Text>
-                                </View>
-                                <Text style={styles.numbertext}>(1)</Text>
-                                <TouchableOpacity style={styles.arrowdown}><FontAwesome size={25} name="angle-down" color="gray" /></TouchableOpacity>
-                            </View>
-                            <View style={styles.line} />
-                            <View style={{ flexDirection: "row", marginTop: 5 }}>
-                                <View style={styles.songcover}>
-                                </View>
-                                <Text style={styles.songname}>Song</Text>
-                                <Text style={styles.releasedatetext}>Draft</Text>
-                                <TouchableOpacity style={styles.modifytext}>
-                                    <Text style={{ color: Primarycolor(), fontWeight: "bold", fontSize: 10 }}>Continue</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity style={styles.deletebtn}>
-                                    <MaterialCommunityIcons name="delete-forever" color={"white"} size={25} />
-                                </TouchableOpacity>
-                            </View>
-                        </View> */}
 
                     </View>
 
@@ -293,6 +434,12 @@ const styles = StyleSheet.create({
         height: 50,
         width: 50,
         borderRadius: 5
+    },
+    songcover2: {
+        height: 50,
+        width: 50,
+        borderRadius: 5,
+        backgroundColor: "silver"
     },
     line: {
         backgroundColor: "gray",

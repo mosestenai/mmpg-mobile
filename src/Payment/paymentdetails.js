@@ -1,5 +1,5 @@
-import React, { useState ,useEffect} from "react";
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, Dimensions, TouchableOpacity,Alert } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, Dimensions, TouchableOpacity, Alert } from "react-native";
 import { FontAwesome5 } from "../Components/fontawesome5";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { Primarycolor, Secondarycolor, Semisecondarycolor, Viewcolor } from "../Utils/color";
@@ -7,11 +7,12 @@ import Entypo from "@expo/vector-icons/Entypo";
 import { Ionicons } from "../Components/ioniicons";
 import { MaterialCommunityIcons } from "../Components/materialcommunity";
 import axios from "axios";
-import { Fetchuserstatements } from "../Utils/urls";
+import { Fetchtracksurl, Fetchuserstatements, updatesplitsurl } from "../Utils/urls";
 import { Getuserdetails } from "../Utils/getuserdetails";
 import * as SQLite from 'expo-sqlite';
 import Spinner from "react-native-loading-spinner-overlay/lib";
 import { BallIndicator } from "react-native-indicators";
+import useInterval from 'use-interval'
 
 const db = SQLite.openDatabase('db.Userdbs') // returns Database object
 
@@ -27,7 +28,7 @@ const Paymentdetails = () => {
     const route = useRoute();
     const [loading, setloading] = useState(true);
 
-    const [songs, setsongs] = useState(route.params.songs);
+    const [songs, setsongs] = useState([]);
     const [statements, setstatements] = useState([]);
 
     useEffect(() => {
@@ -41,18 +42,24 @@ const Paymentdetails = () => {
                 (txObj, error) => console.log('Error ', error)
             ) // end executeSQL
         }) // end transaction
-       
+
     }, []);
+
+    useInterval(() => {
+        fetchtracks(user.token);
+    }, 5000);
 
 
     const getstatements = (e) => {
         axios.post(Fetchuserstatements, {
             token: e
         }).then(function (response) {
-            setloading(false)
             if (!response.data.message) {
                 setstatements(response.data)
+                fetchtracks(e)
             } else {
+                setloading(false)
+                fetchtracks(e)
                 Alert.alert(
                     "Error",
                     response.data.message,
@@ -63,7 +70,7 @@ const Paymentdetails = () => {
             }
             // 
         }).catch(function (error) {
-            
+
             setloading(false)
             Alert.alert(
                 "Error",
@@ -78,9 +85,96 @@ const Paymentdetails = () => {
         });
     }
 
+    const fetchtracks = (e) => {
+        axios.post(Fetchtracksurl, {
+            token: e,
+        }).then(function (response) {
+            setloading(false)
+            if (!response.data.message) {
+                setsongs(response.data)
+            } else {
+                Alert.alert(
+                    "Error",
+                    response.data.message,
+                    [
+                        { text: "OK" }
+                    ]
+                );
+            }
+            // 
+        }).catch(function (error) {
+            setloading(false)
+            //if(error.response.status === 401 || error.response.status === 400){}
+            Alert.alert(
+                "Error",
+                "there was an error fetching tracks",
+                [
+                    { text: "OK" }
+                ]
+            );
+
+        });
+    }
+
+
+    const deletesplit = (id) => {
+        setloading(true)
+        axios.post(updatesplitsurl, {
+            token: user.token,
+            id: id,
+            action: "delete",
+        }).then(function (response) {
+            setloading(false)
+            if (!response.data.message) {
+                if (response.data.success) {
+                    Alert.alert(
+                        "Success",
+                        response.data.success,
+                        [
+                            {
+                                text: "OK"
+                            }
+                        ]
+                    );
+                } else {
+                    Alert.alert(
+                        "Error",
+                        "There was unidentified internal error.Contact admin",
+                        [
+                            { text: "OK" }
+                        ]
+                    );
+                }
+
+            } else {
+                Alert.alert(
+                    "Error",
+                    response.data.message,
+                    [
+                        { text: "OK" }
+                    ]
+                );
+            }
+            // 
+        }).catch(function (error) {
+            setloading(false)
+            Alert.alert(
+                "Error",
+                "There was an error try again later",
+                [
+                    { text: "OK" }
+                ]
+            );
+        });
+
+    }
+
+
+
+
     return (
         <SafeAreaView style={{ backgroundColor: "black", height: deviceHeight }}>
-              {loading &&
+            {loading &&
                 <Spinner
                     visible={true}
                     color='red'
@@ -113,25 +207,32 @@ const Paymentdetails = () => {
                 <View style={styles.splitline} />
                 <View style={{ height: 10 }} />
                 {songs.map((val, key) => {
-                    return (
-                        <View style={styles.splitview}>
+
+                    return (val.splits ?
+                        <View style={styles.splitview} key={key}>
                             <View style={{ width: "60%" }}>
                                 <Text style={{ color: "gray", fontSize: 10 }}>{val.title}/{val.artist}</Text>
                             </View>
                             <View style={{ flexDirection: "row" }}>
-                                <TouchableOpacity style={styles.editbtn}>
+                                <TouchableOpacity style={styles.editbtn} onPress={() => navigation.navigate('authentication', {
+                                    screen: 'editsplit',
+                                    params: { song: val }
+                                })}>
                                     <Text style={{ color: Primarycolor(), fontSize: 10 }}>Edit Split</Text>
                                     <Ionicons name={"md-pencil-sharp"} color={Primarycolor()} style={{ marginHorizontal: 5, marginTop: 2 }} size={10} />
                                 </TouchableOpacity>
-                                <TouchableOpacity style={styles.deletebtn}>
+                                <TouchableOpacity style={styles.deletebtn} onPress={() => deletesplit(val.id)}>
                                     <MaterialCommunityIcons name="delete-forever" color={"white"} size={20} />
                                 </TouchableOpacity>
                             </View>
-                        </View>
+                        </View> : null
                     )
                 })}
                 <View style={styles.splitline} />
-                <TouchableOpacity style={styles.addsplitbutton} onPress={() => navigation.navigate('authentication', { screen: 'addsplit' })}>
+                <TouchableOpacity style={styles.addsplitbutton} onPress={() => navigation.navigate('authentication', {
+                    screen: 'addsplit',
+                    params: { songs: songs }
+                })}>
                     <FontAwesome5 name={"plus"} color={Primarycolor()} style={{ marginRight: 5 }} />
                     <Text style={{ color: Primarycolor(), fontSize: 10 }}>ADD SPLIT</Text>
                 </TouchableOpacity>
@@ -186,11 +287,13 @@ const styles = StyleSheet.create({
     },
     addsplitbutton: {
         marginTop: 5,
+        padding: 10,
         flexDirection: "row"
     },
     deletebtn: {
-        marginTop: -3,
-        marginLeft: 7
+        marginTop: -10,
+        marginLeft: 7,
+        padding:5
     },
     editbtn: {
         flexDirection: "row",

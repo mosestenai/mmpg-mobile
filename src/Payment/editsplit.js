@@ -20,7 +20,7 @@ const db = SQLite.openDatabase('db.Userdbs') // returns Database object
 
 var deviceHeight = Dimensions.get('window').height
 var deviceWidth = Dimensions.get('window').width
-const Addsplit = () => {
+const Editplit = () => {
 
     const navigation = useNavigation();
     const route = useRoute();
@@ -28,81 +28,25 @@ const Addsplit = () => {
     const [error, seterror] = useState('');
     const [total, settotal] = useState('');
     const [nothing, setnothing] = useState(false);
-    const songs = route.params.songs;
-    const [track, settrack] = useState(route.params?.songs[0]?.id);
-    const [loading, setloading] = useState(true);
+    const song = route.params.song;
+    const [track, settrack] = useState(route.params?.song?.id);
+    const [loading, setloading] = useState(false);
     const [percentages, setpercentages] = useState([]);
 
-    const [name, setname] = useState('');
-    const [collaborators, setcollaborators] = useState([]);
 
+    const [collaborators, setcollaborators] = useState(route.params.song?.splits);
 
+    const name = route.params.song?.splits[0].name;
 
 
 
 
     useEffect(() => {
-
-        db.transaction(tx => {
-            // sending 4 arguments in executeSql
-            tx.executeSql('SELECT * FROM User', null, // passing sql query and parameters:null
-                // success callback which sends two things Transaction object and ResultSet Object
-                (txObj, { rows: { _array } }) => {
-                    getuserdashboarddetails(_array[0]);
-                },
-                (txObj, error) => console.log('Error ', error)
-            ) // end executeSQL
-        }) // end transaction
-
-    }, []);
-
-
-
-    const getuserdashboarddetails = (e) => {
-        axios.post(Getartistdetailsurl, {
-            token: e.token,
-        }).then(function (response) {
-            setloading(false)
-            if (!response.data.message) {
-                if (response.data[0].name) {
-                    e.type === 'Artist' ? setname(response.data[0].name) : setname(response.data[0].labelname)
-                    setnothing(!nothing)
-                    const collaborator = [
-                        {
-                            name: user.type === 'Artist' ? response.data[0].name : response.data[0].labelname,
-                            percentage: 50,
-                            id: 1
-                        },
-                        {
-                            email: "",
-                            percentage: 25,
-                            id: 2
-                        },
-                        {
-                            email: "",
-                            percentage: 25,
-                            id: 3
-                        }
-                    ]
-                    setcollaborators(collaborator)
-                    collaborator.forEach(element => {
-                        percentages.push(element.percentage)
-                    });
-
-                    settotal(percentages.reduce((a, b) => a + b, 0))
-
-                } else {
-                    seterror("There was an internal error contact admin")
-                }
-            } else {
-                seterror(response.data.message)
-            }
-            // 
-        }).catch(function (error) {
-            setloading(false)
-            //if(error.response.status === 401 || error.response.status === 400){}
+        collaborators.forEach(element => {
+            percentages.push(element.percentage)
         });
-    }
+        settotal(percentages.reduce((a, b) => a + b, 0))
+    }, []);
 
 
 
@@ -277,19 +221,7 @@ const Addsplit = () => {
             <ScrollView>
                 <View style={styles.addsplitview}>
                     <View style={styles.pickerview}>
-                        <Picker
-                            style={styles.trackpicker}
-                            dropdownIconColor={"white"}
-                            selectedValue={track}
-                            onValueChange={(itemValue, itemIndex) =>
-                                settrack(itemValue)
-                            }>
-                            {songs.map((item, index) => {
-                                return (<Picker.Item label={item?.title + "/" + item?.artist} value={item?.id} key={index} />)
-                            })}
-
-                        </Picker>
-                        {/* <Text style={{ color: "white", position: "absolute", right: 10, marginTop: 15 }}>{track !== 'Select Track' ? track : null}</Text> */}
+                        <Text style={{ color: "white" }}>{song?.title + "/" + song?.artist}</Text>
                     </View>
                     <View style={{ flexDirection: "row" }}>
                         <View style={styles.leftside}>
@@ -368,7 +300,7 @@ const Addsplit = () => {
                                             }}
                                             placeholder="Email"
                                             onChangeText={newText => onchangeemail(val.id, newText)}
-                                            defaultValue={val.name}
+                                            defaultValue={val.email}
                                             placeholderTextColor="gray"
                                         />
                                         <TouchableOpacity onPress={() => removemember(val)} style={{
@@ -512,6 +444,7 @@ const styles = StyleSheet.create({
     },
     pickerview: {
         backgroundColor: Primarycolor(),
+        padding: 10,
         borderRadius: 5,
         flexDirection: "row"
     },
@@ -578,4 +511,4 @@ const styles = StyleSheet.create({
 })
 
 
-export default Addsplit;
+export default Editplit;

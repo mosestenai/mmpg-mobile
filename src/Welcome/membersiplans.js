@@ -11,6 +11,8 @@ import { Getuserdetails } from './../Utils/getuserdetails';
 import { Submitplanuserurl, Makebespokerequesturl } from "./../Utils/urls"
 import axios from 'axios';
 import * as SQLite from 'expo-sqlite';
+import Swiper from 'react-native-swiper'
+import * as WebBrowser from 'expo-web-browser';
 
 const db = SQLite.openDatabase('db.Userdbs') // returns Database object
 
@@ -34,6 +36,9 @@ const Membershipplans = () => {
     const viewref = useRef();
     const [showmembershipbutton, setshowmembershipbutton] = useState(false);
     const [loading, setloading] = useState(false);
+    const [Result, setResult] = useState(null);
+    const [bespoke, setbespoke] = useState(false);
+    const [nothing, setnothing] = useState(false);
 
     const image = require('./../../assets/images/member.png')
 
@@ -50,7 +55,8 @@ const Membershipplans = () => {
         });
     }
 
-    const Makerequest = () => {
+    const Makerequest = (e) => {
+        // console.log(bespoke)
         setloading(true)
         seterror(null)
         axios.post(Makebespokerequesturl, {
@@ -60,7 +66,7 @@ const Membershipplans = () => {
             if (!response.data.message) {
                 if (response.data.success) {
                     setsuccess(response.data.success)
-                    chooseplan('Label')
+                    chooseplan('Label',e)
                 } else {
                     seterror("There was an internal error contact admin")
                 }
@@ -77,7 +83,7 @@ const Membershipplans = () => {
 
     }
 
-    const chooseplan = (e) => {
+    const chooseplan = (e,z) => {
         setloading(true)
         seterror(null)
         axios.post(Submitplanuserurl, {
@@ -95,7 +101,10 @@ const Membershipplans = () => {
                             (tx, results) => {
                                 if (results.rowsAffected > 0) {
                                     navigation.replace("default")
-                                    Linking.openURL('https://mmpg.eazistey.co.ke/' + user.token)
+                                    //open link
+                                    if(!z){
+                                        openlink('https://mmpg.eazistey.co.ke/' + user.token + '/' + e)
+                                    }
                                 } else {
                                     seterror("Internal app error.contact admin")
                                 }
@@ -119,130 +128,30 @@ const Membershipplans = () => {
         });
     }
 
+    const openlink = async (e) => {
+        let result = await WebBrowser.openBrowserAsync(e);
+        setResult(result);
+        // Linking.openURL(smartlink)
+    }
+
+
 
     return (
         <View style={styles.container}>
             <ImageBackground source={image} resizeMode="cover" style={styles.image}>
-                <ScrollView ref={scrollViewRef}
-                    onContentSizeChange={() => scrollViewRef.current.scrollTo({ x: 2, y: 2, animated: true })}
-                    horizontal={true}>
-                    <View style={styles.loginContainer}>
-                        <View style={{
-                            backgroundColor: "black",
-                            marginTop: 30,
-                            width: "90%",
-                            marginHorizontal: "5%"
-                        }}>
-                            <View style={{
-                                borderWidth: 1,
-                                borderColor: Primarycolor(),
-                                borderRadius: 5,
-                                padding: 10
-                            }}>
-                                <View style={{ alignSelf: "flex-end", justifyContent: "center", alignItems: "center" }}>
-                                    <Text style={{ color: "white", fontSize: 10 }}> Most Popular</Text>
-                                    <Icon name="star" color="orange" />
-                                </View>
-                                <View style={{
-                                    justifyContent: "center",
-                                    alignItems: "center"
-                                }}>
-                                    <Text style={{
-                                        color: "white"
-                                        , fontWeight: "bold",
-                                        fontSize: 20
-                                    }}>Artist or Producer</Text>
-                                    <Text style={{ color: "gray", fontSize: 10 }}>1 Artist or Producer</Text>
-                                </View>
-                            </View>
-                            <View style={{ marginTop: 20, width: "90%", marginHorizontal: "5%" }}>
-                                <View style={{ flexDirection: "row" }}>
-                                    <Icon name="check" color={Primarycolor()} style={{ marginTop: 5 }} />
-                                    <Text style={styles.planstext}>Release Unlimited Music</Text>
-                                </View>
-                                <View style={{ flexDirection: "row" }}>
-                                    <Icon name="check" color={Primarycolor()} style={{ marginTop: 5 }} />
-                                    <Text style={styles.planstext}>Copyright Protection</Text>
-                                </View>
-                                <View style={{ flexDirection: "row" }}>
-                                    <Icon name="check" color={Primarycolor()} style={{ marginTop: 5 }} />
-                                    <Text style={styles.planstext}>Split Earnings with Producers</Text>
-                                </View>
-                                <View style={{ flexDirection: "row" }}>
-                                    <Icon name="check" color={Primarycolor()} style={{ marginTop: 5 }} />
-                                    <Text style={styles.planstext}>Make Money From Youtube Content ID</Text>
-                                </View>
-                                <View style={{ flexDirection: "row" }}>
-                                    <Icon name="check" color={Primarycolor()} style={{ marginTop: 5 }} />
-                                    <Text style={styles.planstext}>Get Your Music on Tiktok, Instagram & Facebook</Text>
-                                </View>
-                                <View style={{ flexDirection: "row" }}>
-                                    <Icon name="check" color={Primarycolor()} style={{ marginTop: 5 }} />
-                                    <Text style={styles.planstext}>Custom ISRC Codes</Text>
-                                </View>
-                                <View style={{ flexDirection: "row" }}>
-                                    <Icon name="check" color={Primarycolor()} style={{ marginTop: 5 }} />
-                                    <Text style={styles.planstext}>Custom Pre-Order & Release Dates</Text>
-                                </View>
-                                <View style={{ flexDirection: "row" }}>
-                                    <Icon name="check" color={Primarycolor()} style={{ marginTop: 5 }} />
-                                    <Text style={styles.planstext}>Smartlink</Text>
-                                </View>
-                                <View style={{ flexDirection: "row" }}>
-                                    <Icon name="check" color={Primarycolor()} style={{ marginTop: 5 }} />
-                                    <Text style={styles.planstext}>Analytic Reports</Text>
-                                </View>
-                                <View style={{ flexDirection: "row" }}>
-                                    <Icon name="check" color={Primarycolor()} style={{ marginTop: 5 }} />
-                                    <Text style={styles.planstext}>Access To Funding</Text>
-                                </View>
-                                <View style={{ flexDirection: "row" }}>
-                                    <Icon name="check" color={Primarycolor()} style={{ marginTop: 5 }} />
-                                    <Text style={styles.planstext}>Dedicated Client Support Team</Text>
-                                </View>
-                                <View style={{ flexDirection: "row" }}>
-                                    <Icon name="check" color={Primarycolor()} style={{ marginTop: 5 }} />
-                                    <Text style={styles.planstext}>Cancel Your Membership Anytime</Text>
-                                </View>
-                                <View style={{ marginTop: 20 }}>
-                                    <Text style={{ fontSize: 23, color: "white", fontWeight: "400" }}>
-                                        $16.99/yr
-                                    </Text>
-                                    {error ? <Text style={{ fontSize: 10, color: "red" }}>{error}</Text> : null}
-                                    <TouchableOpacity
-                                        onPress={() => chooseplan('Artist')}
-                                        style={{
-                                            backgroundColor: Primarycolor(),
-                                            alignSelf: "flex-end",
-                                            justifyContent: "center",
-                                            alignItems: "center",
-                                            width: "40%",
-                                            height: 40,
-                                            paddingVertical: 10,
-                                            borderRadius: 5
-                                        }}>
-                                        {loading ? <BallIndicator color='white' size={10} /> : <Text style={{ color: "white", fontWeight: "bold" }}>
-                                            Continue
-                                        </Text>}
-                                    </TouchableOpacity>
-                                </View>
-                            </View>
-                        </View>
-                        <View style={styles.bottomCenter}>
-                            <View style={{ justifyContent: "center", alignItems: "center", flexDirection: "row" }}>
-                                <Icon name='dot-circle-o' color={"white"} style={{ marginRight: 5 }} />
-                                <Icon name='dot-circle-o' color={"gray"} style={{ marginRight: 5 }} />
-                                <Icon name='dot-circle-o' color={"gray"} style={{ marginRight: 0 }} />
-                            </View>
+                <Swiper showsButtons={false} loop={false}
+                    activeDotStyle={{
+                        backgroundColor: "white",
 
-                            <View style={{ flexDirection: "row", marginTop: 7, justifyContent: "center", alignItems: "center" }}>
-                                <Text style={{ color: "gray", fontSize: 7 }}>By creating an account i agree to the </Text>
-                                <TouchableOpacity><Text style={{ color: "white", fontSize: 7 }}>Terms & Conditions </Text></TouchableOpacity>
-                                <Text style={{ color: "gray", fontSize: 7 }}>and</Text>
-                                <TouchableOpacity><Text style={{ color: "white", fontSize: 7 }}> Privacy Policy </Text></TouchableOpacity>
-                            </View>
-                        </View>
-                    </View>
+                    }}
+                    dotStyle={{
+                        borderColor: "white",
+                        borderWidth: 1,
+
+                    }}
+                    index={1}
+
+                >
                     <View style={styles.loginContainer}>
                         <View style={{
                             backgroundColor: "black",
@@ -329,7 +238,8 @@ const Membershipplans = () => {
                                             justifyContent: "center",
                                             alignItems: "center",
                                             width: "40%",
-                                            height: 40,
+                                            height: 30,
+                                            paddingVertical: 5,
                                             borderRadius: 5
                                         }}>
                                         {loading ? <BallIndicator color='white' size={10} /> : <Text style={{ color: "white", fontWeight: "bold" }}>
@@ -340,11 +250,6 @@ const Membershipplans = () => {
                             </View>
                         </View>
                         <View style={styles.bottomCenter}>
-                            <View style={{ justifyContent: "center", alignItems: "center", flexDirection: "row" }}>
-                                <Icon name='dot-circle-o' color={"gray"} style={{ marginRight: 5 }} />
-                                <Icon name='dot-circle-o' color={"white"} style={{ marginRight: 5 }} />
-                                <Icon name='dot-circle-o' color={"gray"} style={{ marginRight: 0 }} />
-                            </View>
                             <View style={{ flexDirection: "row", marginTop: 7, justifyContent: "center", alignItems: "center" }}>
                                 <Text style={{ color: "gray", fontSize: 7 }}>By creating an account i agree to the </Text>
                                 <TouchableOpacity><Text style={{ color: "white", fontSize: 7 }}>Terms & Conditions </Text></TouchableOpacity>
@@ -353,6 +258,120 @@ const Membershipplans = () => {
                             </View>
                         </View>
                     </View>
+                    <View style={styles.loginContainer}>
+                        <View style={{
+                            backgroundColor: "black",
+                            marginTop: 30,
+                            width: "90%",
+                            marginHorizontal: "5%"
+                        }}>
+                            <View style={{
+                                borderWidth: 1,
+                                borderColor: Primarycolor(),
+                                borderRadius: 5,
+                                padding: 10
+                            }}>
+                                <View style={{ position: "absolute", justifyContent: "center", alignItems: "center", right: 10,marginTop:10 }}>
+                                    <Text style={{ color: "white", fontSize: 10 }}> Most Popular</Text>
+                                    <Icon name="star" color="orange" size={15} />
+                                </View>
+                                <View style={{
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                    marginVertical: 15
+
+                                }}>
+                                    <Text style={{
+                                        color: "white"
+                                        , fontWeight: "bold",
+                                        fontSize: 20
+                                    }}>Artist or Producer</Text>
+                                    <Text style={{ color: "gray", fontSize: 10 }}>1 Artist or Producer</Text>
+                                </View>
+                            </View>
+                            <View style={{ marginTop: 20, width: "90%", marginHorizontal: "5%" }}>
+                                <View style={{ flexDirection: "row" }}>
+                                    <Icon name="check" color={Primarycolor()} style={{ marginTop: 5 }} />
+                                    <Text style={styles.planstext}>Release Unlimited Music</Text>
+                                </View>
+                                <View style={{ flexDirection: "row" }}>
+                                    <Icon name="check" color={Primarycolor()} style={{ marginTop: 5 }} />
+                                    <Text style={styles.planstext}>Copyright Protection</Text>
+                                </View>
+                                <View style={{ flexDirection: "row" }}>
+                                    <Icon name="check" color={Primarycolor()} style={{ marginTop: 5 }} />
+                                    <Text style={styles.planstext}>Split Earnings with Producers</Text>
+                                </View>
+                                <View style={{ flexDirection: "row" }}>
+                                    <Icon name="check" color={Primarycolor()} style={{ marginTop: 5 }} />
+                                    <Text style={styles.planstext}>Make Money From Youtube Content ID</Text>
+                                </View>
+                                <View style={{ flexDirection: "row" }}>
+                                    <Icon name="check" color={Primarycolor()} style={{ marginTop: 5 }} />
+                                    <Text style={styles.planstext}>Get Your Music on Tiktok, Instagram & Facebook</Text>
+                                </View>
+                                <View style={{ flexDirection: "row" }}>
+                                    <Icon name="check" color={Primarycolor()} style={{ marginTop: 5 }} />
+                                    <Text style={styles.planstext}>Custom ISRC Codes</Text>
+                                </View>
+                                <View style={{ flexDirection: "row" }}>
+                                    <Icon name="check" color={Primarycolor()} style={{ marginTop: 5 }} />
+                                    <Text style={styles.planstext}>Custom Pre-Order & Release Dates</Text>
+                                </View>
+                                <View style={{ flexDirection: "row" }}>
+                                    <Icon name="check" color={Primarycolor()} style={{ marginTop: 5 }} />
+                                    <Text style={styles.planstext}>Smartlink</Text>
+                                </View>
+                                <View style={{ flexDirection: "row" }}>
+                                    <Icon name="check" color={Primarycolor()} style={{ marginTop: 5 }} />
+                                    <Text style={styles.planstext}>Analytic Reports</Text>
+                                </View>
+                                <View style={{ flexDirection: "row" }}>
+                                    <Icon name="check" color={Primarycolor()} style={{ marginTop: 5 }} />
+                                    <Text style={styles.planstext}>Access To Funding</Text>
+                                </View>
+                                <View style={{ flexDirection: "row" }}>
+                                    <Icon name="check" color={Primarycolor()} style={{ marginTop: 5 }} />
+                                    <Text style={styles.planstext}>Dedicated Client Support Team</Text>
+                                </View>
+                                <View style={{ flexDirection: "row" }}>
+                                    <Icon name="check" color={Primarycolor()} style={{ marginTop: 5 }} />
+                                    <Text style={styles.planstext}>Cancel Your Membership Anytime</Text>
+                                </View>
+                                <View style={{ marginTop: 20 }}>
+                                    <Text style={{ fontSize: 23, color: "white", fontWeight: "400" }}>
+                                        $16.99/yr
+                                    </Text>
+                                    {error ? <Text style={{ fontSize: 10, color: "red" }}>{error}</Text> : null}
+                                    <TouchableOpacity
+                                        onPress={() => chooseplan('Artist')}
+                                        style={{
+                                            backgroundColor: Primarycolor(),
+                                            alignSelf: "flex-end",
+                                            justifyContent: "center",
+                                            alignItems: "center",
+                                            width: "40%",
+                                            height: 30,
+                                            paddingVertical: 5,
+                                            borderRadius: 5
+                                        }}>
+                                        {loading ? <BallIndicator color='white' size={10} /> : <Text style={{ color: "white", fontWeight: "bold" }}>
+                                            Continue
+                                        </Text>}
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        </View>
+                        <View style={styles.bottomCenter}>
+                            <View style={{ flexDirection: "row", marginTop: 7, justifyContent: "center", alignItems: "center" }}>
+                                <Text style={{ color: "gray", fontSize: 7 }}>By creating an account i agree to the </Text>
+                                <TouchableOpacity><Text style={{ color: "white", fontSize: 7 }}>Terms & Conditions </Text></TouchableOpacity>
+                                <Text style={{ color: "gray", fontSize: 7 }}>and</Text>
+                                <TouchableOpacity><Text style={{ color: "white", fontSize: 7 }}> Privacy Policy </Text></TouchableOpacity>
+                            </View>
+                        </View>
+                    </View>
+
                     <View style={styles.loginContainer}>
                         <View style={{
                             backgroundColor: "black",
@@ -394,7 +413,9 @@ const Membershipplans = () => {
                                 {error ? <Text style={{ fontSize: 10, color: "red" }}>{error}</Text> : null}
                                 {success ? <Text style={{ fontSize: 10, color: "green" }}>{success}</Text> : null}
                                 <TouchableOpacity
-                                    onPress={Makerequest}
+                                    onPress={()=>{
+                                        Makerequest("Bespoke")
+                                    }}
                                     style={{
                                         justifyContent: "center",
                                         marginTop: 70,
@@ -405,18 +426,13 @@ const Membershipplans = () => {
                                         paddingHorizontal: 10,
                                         height: 40
                                     }}>
-                                    <Text style={{ color: "white" }}>
+                                        {loading ? <BallIndicator color='white' size={10} /> : <Text style={{ color: "white", fontWeight: "bold" }}>
                                         Contact Us
-                                    </Text>
+                                        </Text>}
                                 </TouchableOpacity>
                             </View>
                         </View>
                         <View style={styles.bottomCenter}>
-                            <View style={{ justifyContent: "center", alignItems: "center", flexDirection: "row" }}>
-                                <Icon name='dot-circle-o' color={"gray"} style={{ marginRight: 5 }} />
-                                <Icon name='dot-circle-o' color={"gray"} style={{ marginRight: 5 }} />
-                                <Icon name='dot-circle-o' color={"white"} style={{ marginRight: 0 }} />
-                            </View>
                             <View style={{ flexDirection: "row", marginTop: 7, justifyContent: "center", alignItems: "center" }}>
                                 <Text style={{ color: "gray", fontSize: 7 }}>By creating an account i agree to the </Text>
                                 <TouchableOpacity><Text style={{ color: "white", fontSize: 7 }}>Terms & Conditions </Text></TouchableOpacity>
@@ -425,7 +441,7 @@ const Membershipplans = () => {
                             </View>
                         </View>
                     </View>
-                </ScrollView>
+                </Swiper>
             </ImageBackground>
         </View>
     );
@@ -438,7 +454,7 @@ const styles = StyleSheet.create({
         // justifyContent: "center"
     },
     planstext: {
-        color: "gray",
+        color: "white",
         marginLeft: 10,
         fontWeight: "100",
         fontSize: 10,
@@ -506,9 +522,11 @@ const styles = StyleSheet.create({
     },
 
     bottomCenter: {
-        flex: 1,
-        justifyContent: 'flex-end',
-        marginBottom: 30
+        position: "absolute",
+        width: "100%",
+        justifyContent: "center",
+        alignItems: "center",
+        bottom: 1
     }
 });
 

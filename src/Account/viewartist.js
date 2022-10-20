@@ -5,6 +5,8 @@ import { Primarycolor, Secondarycolor } from "../Utils/color";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { FontAwesome } from "../Components/fontawesome";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { LinearGradient } from 'expo-linear-gradient';
+import Spinner from "react-native-loading-spinner-overlay/lib";
 import {
     LineChart,
     BarChart,
@@ -27,13 +29,16 @@ const Viewartist = () => {
     const [graphdata, setgraphdata] = useState(route.params.data.streamshistory);
     const [focused, setfocused] = useState('total');
     const [nothing, setnothing] = useState(false);
+    const [streamstoshow, setstreamstoshow] = useState(route.params.data?.streamshistory?.reduce((a, b) => a + b, 0));
+    const [editby, seteditby] = useState('Lifetime');
+    const [showpickermenu, setshowpickermenu] = useState(false);
 
     const MyBezierLineChart = () => {
         return (
             <>
                 <LineChart
                     data={{
-                        labels: ['Ja', 'Fe', 'Ma', 'Ap', 'Ma', 'jun', 'jul', 'Au', 'Sep', 'Oc', 'Nov', 'De'],
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'jun', 'jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
                         datasets: [
                             {
                                 data: graphdata,
@@ -42,6 +47,12 @@ const Viewartist = () => {
                     }}
                     width={deviceWidth - 20} // from react-native
                     height={220}
+                    verticalLabelRotation={-60}
+                    withInnerLines={true}
+                    withVerticalLines={false}
+                    withHorizontalLines={true}
+                    withDots={false}
+                    withOuterLines={false}
                     // yAxisLabel={'Rs'}
                     chartConfig={{
                         backgroundColor: Primarycolor(),
@@ -51,6 +62,7 @@ const Viewartist = () => {
                         decimalPlaces: 1, // optional, defaults to 2dp
                         //color: (opacity = 255) => `rgba(0, 0, 0, ${opacity})`,
                         color: (opacity = 255) => Primarycolor(),
+                        labelColor: (opacity = 255) => "white",
                         style: {
                             borderRadius: 16,
                             borderBottomLeftRadius: 5
@@ -68,66 +80,157 @@ const Viewartist = () => {
         );
     };
 
+    const sorts = ["Last 28 days", "Last 90 days", "Lifetime"]
+
+    const sort = (val) => {
+        var currentdate = new Date();
+        const month = currentdate.getMonth()
+
+
+        if (val === 'Last 28 days') {
+            setstreamstoshow(graphdata[month])
+        } else if (val === "Last 90 days") {
+            const thirdmonth = graphdata[month - 2]
+            const secondmonth = graphdata[month - 1]
+            const firstmonth = graphdata[month]
+
+            const final = parseInt(thirdmonth) + parseInt(secondmonth) + parseInt(firstmonth);
+            setstreamstoshow(final)
+        } else {
+            setstreamstoshow(graphdata.reduce((a, b) => a + b, 0))
+        }
+
+    }
+
 
     return (
         <SafeAreaView style={{ backgroundColor: "black", height: deviceHeight }}>
+            {showpickermenu ? <Spinner
+                visible={true}
+                color='red'
+                size={70}
+                customIndicator={
+                    <View style={{ width: "80%", backgroundColor: Secondarycolor() }}>
+                        <Text style={{ color: "gray", padding: 5 }}>Sort criteria</Text>
+                        <ScrollView>
+                            {sorts.map((val, key) => {
+                                return (
+                                    <TouchableOpacity key={key}
+                                        onPress={() => {
+                                            seteditby(val)
+                                            setshowpickermenu(false)
+                                            sort(val)
+                                        }}
+                                        style={{
+                                            padding: 10,
+                                            backgroundColor: editby === val ? Primarycolor() : Secondarycolor()
+                                        }}>
+                                        <Text style={{ color: "white" }}>{val}</Text>
+                                    </TouchableOpacity>
+                                )
+                            })}
+                        </ScrollView>
+                    </View>}
+            /> : null}
             <View style={{ paddingBottom: 20 }}>
-                <View style={{ flexDirection: "row", marginTop: 20, marginHorizontal: "5%" }}>
-                    <View style={{ width: "16%" }}>
-                        <TouchableOpacity onPress={() => navigation.goBack()}>
-                            <Icon name="angle-left" color="white" size={25} />
-                        </TouchableOpacity>
-                    </View>
-                    {data.profilepic_url ? <Image
-                        source={{ uri: data.profilepic_url }}
-                        style={{
-                            height: 200,
-                            width: 200,
-                            borderRadius: 200
-                        }}
-                    /> :
-                        <TouchableOpacity
-                            style={styles.user}
-                        />}
+
+
+                <TouchableOpacity style={{
+                    position: "absolute",
+                    top: 10,
+                    left: 10,
+                    zIndex: 1
+                }} onPress={() => navigation.goBack()}>
+                    <Icon name="angle-left" color="white" size={25} />
+                </TouchableOpacity>
+
+
+                <TouchableOpacity
+                    onPress={() => navigation.navigate("searchsong", {
+                        data: data
+                    })}
+                    style={{
+                        position: "absolute",
+                        padding: 10,
+                        right: "1%",
+                        zIndex: 1
+                    }}>
+                    <Icon name="search" color={"white"} size={20} />
+                </TouchableOpacity>
+
+                {data.profilepic_url ? <Image
+                    source={{ uri: data.profilepic_url }}
+                    style={{
+                        height: 280,
+                        width: deviceWidth
+                    }}
+                /> :
                     <TouchableOpacity
-                        onPress={() => navigation.navigate("searchsong", {
-                            data: data
-                        })}
-                        style={{
-                            position:"absolute",
-                            padding:10,
-                            right:"1%"
-                        }}>
-                        <Icon name="search" color={"gray"} size={20} />
-                    </TouchableOpacity>
-                </View>
-                <View style={{ flexDirection: "row", marginHorizontal: "5%" }}>
+                        style={styles.user}
+                    />}
+                <LinearGradient
+                    // Background Linear Gradient
+                    colors={['rgba(0,0,0,0.8)', 'transparent']}
+                // style={styles.background}
+                />
+                <LinearGradient
+                    // Button Linear Gradient
+                    colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.8)', 'black']}
+                    style={{
+                        flexDirection: "row",
+                        paddingHorizontal: "5%",
+                        position: "absolute",
+                        height: 60,
+                        width: deviceWidth,
+                        top: 220,
+                    }}>
                     <View style={{ width: "70%" }}>
-                        <Text style={{ color: "white", fontWeight: "bold" }}> {data?.name}</Text>
+                        <Text style={{ color: "white", fontWeight: "bold" }}>{data?.name} </Text>
                         <TouchableOpacity style={{ flexDirection: "row" }}>
-                            <Icon name="headphones-alt" color="gray" style={{ marginTop: 5 }} />
-                            <Text style={{ color: "gray", marginLeft: 5 }}>{data?.totalstreams.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</Text>
+                            <Icon name="headphones-alt" color="white" style={{ marginTop: 5 }} />
+                            <Text style={{ color: "white", marginLeft: 5 }}>{data?.totalstreams.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</Text>
                         </TouchableOpacity>
                     </View>
-                    <TouchableOpacity
-                        onPress={() => navigation.navigate("Music")}
-                        style={{ flexDirection: "row", marginTop: 25 }}>
-                        <Text style={{ color: "gray", fontSize: 10 }}>CATALOGUE</Text>
-                        <Icon name="long-arrow-alt-right" color="gray" style={{ marginLeft: 5 }} />
+                    <TouchableOpacity onPress={() => navigation.navigate("Music")} style={{ flexDirection: "row", marginTop: 25 }}>
+                        <Text style={{ color: "white", fontSize: 10 }}>CATALOGUE</Text>
+                        <Icon name="long-arrow-alt-right" color="white" style={{ marginLeft: 5 }} />
                     </TouchableOpacity>
 
-                </View>
+                </LinearGradient>
+
             </View>
 
             <ScrollView>
+                <View
+                    style={{
+                        flexDirection: "row",
+                        alignSelf: "flex-end",
+                        right: 10,
 
-                <View style={{ marginBottom: 100, marginTop: 15 }}>
+                    }}>
+                    <Text style={{ color: Primarycolor(), fontSize: 12 }}>{editby}</Text>
+                    <TouchableOpacity onPress={() => setshowpickermenu(true)} style={{
+                        height: 20,
+                        width: 20,
+                        justifyContent: "center",
+                        marginLeft: 5,
+                        alignItems: "center",
+                        borderRadius: 5,
+                        borderWidth: 1,
+                        borderColor: Primarycolor()
+                    }}>
+                        <Icon name="angle-down" color={Primarycolor()} />
+                    </TouchableOpacity>
+                </View>
+                <View style={{ marginBottom: 100, marginTop: 5 }}>
                     <View style={styles.headerscroll}>
                         <TouchableOpacity
                             onPress={() => {
                                 setfocused("total")
                                 setgraphdata(data.streamshistory)
                                 setnothing(!nothing)
+                                setstreamstoshow(data.totalstreams?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","))
+                                seteditby("Lifetime")
                             }}
                             style={{ marginRight: 20 }}>
                             <Text style={{ color: focused == 'total' ? Primarycolor() : "white" }}>Total</Text>
@@ -137,6 +240,8 @@ const Viewartist = () => {
                                 setfocused("spotify")
                                 setgraphdata(data.spotifystreams)
                                 setnothing(!nothing)
+                                seteditby("Lifetime")
+                                setstreamstoshow(data.spotifystreams?.reduce((a, b) => a + b, 0))
                             }}
                             style={{ marginRight: 20, flexDirection: "row" }}>
                             <FontAwesome name="spotify" color={focused == 'spotify' ? Primarycolor() : "white"} size={15} style={{ marginTop: 3, marginRight: 3 }} />
@@ -147,6 +252,8 @@ const Viewartist = () => {
                                 setfocused("apple")
                                 setgraphdata(data.applestreams)
                                 setnothing(!nothing)
+                                seteditby("Lifetime")
+                                setstreamstoshow(data.applestreams?.reduce((a, b) => a + b, 0))
                             }}
                             style={{ marginRight: 0, flexDirection: "row" }}>
                             <Icon name="apple-alt" color={focused == 'apple' ? Primarycolor() : "white"} style={{ marginTop: 3, marginRight: 3 }} />
@@ -154,7 +261,14 @@ const Viewartist = () => {
                         </TouchableOpacity>
 
                     </View>
-                    <MyBezierLineChart />
+                    <View>
+                        <View style={{ position: "absolute", right: 20, bottom: 60, zIndex: 1 }}>
+                            <Text style={{ color: "white", fontSize: 10 }}>TOTAL</Text>
+                            <Text style={{ color: "white", fontSize: 8 }}>{streamstoshow}</Text>
+                        </View>
+                        <MyBezierLineChart />
+
+                    </View>
                     <View style={{ alignSelf: "center", flexDirection: "row" }}>
                         <Icon name="headphones-alt" color={Primarycolor()} style={{ marginTop: 0 }} />
                         <Text style={{ color: "gray", marginLeft: 5, fontSize: 10 }}>Streams</Text>

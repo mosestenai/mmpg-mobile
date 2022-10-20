@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, SafeAreaView, ScrollView, StyleSheet, TouchableOpacity, Dimensions, TextInput, Image } from "react-native";
+import { View, Text, SafeAreaView, ScrollView, StyleSheet, TouchableOpacity, Dimensions, TextInput, Image, Alert } from "react-native";
 import { Primarycolor, Secondarycolor, Semisecondarycolor, Viewcolor } from "../Utils/color";
 import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
 import EvilIcons from "@expo/vector-icons/EvilIcons";
@@ -26,6 +26,7 @@ var deviceheight = Dimensions.get('window').height;
 
 const Step5 = () => {
 
+
     const navigation = useNavigation();
     const route = useRoute();
     const user = Getuserdetails();
@@ -34,13 +35,14 @@ const Step5 = () => {
     const [tracks, settracks] = useState(route.params.audiofile);
     const [isrc, setisrc] = useState('');
     const [primaryartist, setprimaryartist] = useState(route.params.primaryartist && route.params.primaryartist);
-    const [featuredartist, setfeaturedartist] = useState(route.params.primaryartist && route.params.primaryartist);
+    const [featuredartists, setfeaturedartists] = useState(route.params.featuredartists && route.params.featuredartists);
     const [primaryartists, setprimaryartists] = useState([route.params.primaryartist && route.params.primaryartist]);
-    const [featuredartists, setfeaturedartists] = useState([route.params.primaryartist && route.params.primaryartist]);
+    // const [featuredartists, setfeaturedartists] = useState([route.params.primaryartist && route.params.primaryartist]);
+    const [typedfeaturedartist, settypedfeaturedartist] = useState('');
     const [partist, setpartist] = useState('');
     const [copyrightyear, setcopyrightyear] = useState('');
     const [copyrightholder, setcopyrightholder] = useState('');
-    const [contributors, setcontributors] = useState('');
+    const [contributors, setcontributors] = useState([]);
     const [writer, setwriter] = useState('');
     const [role, setrole] = useState('');
     const [artists, setartists] = useState([]);
@@ -51,7 +53,10 @@ const Step5 = () => {
     const [donothing, setdonothing] = useState(false);
     const [tracktoedit, settracktoedit] = useState('');
     const [edittrack, setedittrack] = useState(false);
-    const [loading, setloading] = useState(true);
+    const [loading, setloading] = useState(false);
+    const [featuredrole, setfeaturedrole] = useState('Featured Artist');
+    const [contributorrole, setcontributorrole] = useState('Dj');
+    const [typedcontributor, settypedcontributor] = useState('');
 
 
     const [advice, setadvice] = useState('Choose');
@@ -62,6 +67,7 @@ const Step5 = () => {
 
     const [sound, setSound] = React.useState();
 
+    
 
     useEffect(() => {
 
@@ -70,7 +76,9 @@ const Step5 = () => {
             tx.executeSql('SELECT * FROM User', null, // passing sql query and parameters:null
                 // success callback which sends two things Transaction object and ResultSet Object
                 (txObj, { rows: { _array } }) => {
-                  _array[0].type === 'Label'&& getartists(_array[0].token)
+                    if (_array[0].type === 'Label' && primaryartists[0].length < 3) {
+                        getartists(_array[0].token)
+                    }
                 },
                 (txObj, error) => console.log('Error ', error)
             ) // end executeSQL
@@ -86,17 +94,8 @@ const Step5 = () => {
                 if (response.data[0].name) {
                     response.data.forEach(element => {
                         primaryartists.push(element.name)
-                        featuredartists.push(element.name)
                     });
-                    // setartists(response.data)
-                    // setprimaryartists(response.data)
-                    // setfeaturedartists(response.data)
-                    // artists.push(response.data[0].name)
-                    // setartist(response.data[0].name)
-                    // setnothing(!nothing)
-                    // setgottendata(true)
                 }
-
             } else {
                 seterror(response.data.message)
             }
@@ -137,14 +136,50 @@ const Step5 = () => {
             : undefined;
     }, [sound]);
 
-    const onpushprimaryartists = () => {
-
-    }
 
     const onpushfeaturedartists = () => {
+        const artistto = {
+            name: typedfeaturedartist,
+            role: featuredrole
+        }
+        if (!featuredrole) {
+            Alert.alert(
+                "Error",
+                'Select artist role',
+                [
+                    { text: "OK" }
+                ]
+            );
+        } else {
+            if (featuredartists.length < 1) {
+                setfeaturedartists([artistto])
+                setdonothing(!donothing)
+            } else {
+                featuredartists.push(artistto)
+                setdonothing(!donothing)
+            }
+        }
 
     }
-    const onpushwriters = () => {
+
+    const onpushcontributors = () => {
+        const artistto = {
+            name: typedcontributor,
+            role: contributorrole
+        }
+        if (!contributorrole) {
+            Alert.alert(
+                "Error",
+                'Select artist role',
+                [
+                    { text: "OK" }
+                ]
+            );
+        } else {
+            contributors.push(artistto)
+            setdonothing(!donothing)
+
+        }
 
     }
 
@@ -152,7 +187,7 @@ const Step5 = () => {
 
 
 
-    var roles = ["Select", "role1", "role1", "role1"]
+
 
 
 
@@ -195,6 +230,26 @@ const Step5 = () => {
         "Nepali"
     ]
 
+    const featuredroles = ["Featured Artist", "With"];
+    const contributorroles = [
+        "Chorus",
+        "Dj",
+        "Engineer",
+        "Ensemble",
+        "Orchestra",
+        "Producer",
+        "Composer",
+        "Lyricist",
+        "Arranger",
+        "Soloist",
+        "Conductor",
+        "Remixer",
+        "Musical Director",
+        "Actor",
+        "Singer"
+    ]
+
+
 
     const gotonextpage = () => {
         navigation.navigate("step6", {
@@ -224,7 +279,7 @@ const Step5 = () => {
             trackuri: tracktoedit.trackuri,
             trackfilename: tracktoedit.trackfilename,
             primaryartist: primaryartist,
-            featuredartist: primaryartist,
+            featuredartist: featuredartists,
         }
         const index = tracks.indexOf(tracktoedit);
 
@@ -237,8 +292,37 @@ const Step5 = () => {
         }
     }
 
+    const saveforlater = () => {
+        db.transaction(tx => {
 
-    
+            tx.executeSql('INSERT INTO Tracks (title,imgurl) values (?,?)', [route.params.releasetitle, route.params.coverimage.uri],
+                (txObj, resultSet) => {
+                    Alert.alert(
+                        "Success",
+                        'Saved successfully',
+                        [
+                            { text: "OK" }
+                        ]
+                    );
+                    setTimeout(() => {
+                        navigation.navigate("Home")
+                    }, 3000);
+                },
+                (txObj, error) => {
+                    Alert.alert(
+                        "Error",
+                        error + 'Contact admin',
+                        [
+                            { text: "OK" }
+                        ]
+                    );
+                })
+        }) // end transaction
+
+    }
+
+
+
 
 
     return (
@@ -251,7 +335,7 @@ const Step5 = () => {
                     customIndicator={<BallIndicator color={Primarycolor()} />}
                 />}
             <View style={styles.fixedview}>
-                <TouchableOpacity style={styles.savelater}>
+                <TouchableOpacity style={styles.savelater} onPress={saveforlater}>
                     <SimpleLineIcons name="logout" color="white" size={25} />
                     <Text style={{ color: "white", marginLeft: 5, marginTop: 3 }}>Save for Later</Text>
                 </TouchableOpacity>
@@ -453,6 +537,7 @@ const Step5 = () => {
                                     defaultValue={copyrightyear}
                                     placeholder="Y Y Y Y"
                                     style={styles.leftinput}
+                                    maxLength={4}
                                     placeholderTextColor="gray"
                                     keyboardType="numeric"
                                 />
@@ -504,6 +589,9 @@ const Step5 = () => {
                                     placeholder="Artist name"
                                     placeholderTextColor={"gray"}
                                     style={styles.artistinput}
+                                    onSubmitEditing={() => {
+                                        user.type !== 'Artist' && primaryartists.push(primaryartist)
+                                    }}
                                     value={primaryartist}
                                     onChangeText={newText => {
                                         !route.params.primaryartist &&
@@ -515,17 +603,37 @@ const Step5 = () => {
                             <View style={{ flexDirection: "row", marginTop: 10 }}>
                                 <Text style={{ color: "white", fontWeight: "bold", marginTop: 0 }}>Featured Artists</Text>
                             </View>
+
+                            <View style={{ marginTop: 5 }}>
+
+                                {Array.isArray(featuredartists) && featuredartists?.map((val, key) => {
+                                    const deleteaudio = (val) => {
+                                        const index = featuredartists.indexOf(val);
+                                        setdonothing(!donothing)
+                                        if (index > -1) { // only splice array when item is found
+                                            featuredartists.splice(index, 1); // 2nd parameter means remove one item only
+                                        }
+                                    }
+
+                                    return val ?
+                                        <View style={{ flexDirection: "row", margin: 5 }}>
+                                            <Text style={{ fontSize: 10, color: "white", width: "90%" }}>{val?.name}({val.role})</Text>
+                                            <TouchableOpacity onPress={() => deleteaudio(val)}>
+                                                <MaterialCommunityIcons name="delete-forever" color={"white"} size={25} />
+                                            </TouchableOpacity>
+                                        </View> : null
+
+                                })}
+                            </View>
                             <Text style={{ color: "white", fontWeight: "bold", marginTop: 0 }}>Role</Text>
                             <View style={styles.addsplitview}>
                                 <View style={styles.pickerview}>
                                     <Picker
                                         style={styles.trackpicker}
                                         dropdownIconColor={"white"}
-                                        selectedValue={featuredartist}
-                                        onValueChange={(itemValue, itemIndex) =>
-                                            setfeaturedartist(itemValue)
-                                        }>
-                                        {featuredartists.map((item, index) => {
+                                        // selectedValue={typedfeaturedartist}
+                                        onValueChange={(itemValue, itemIndex) => setfeaturedrole(itemValue)}>
+                                        {featuredroles.map((item, index) => {
                                             return (<Picker.Item label={item} value={item} key={index} />)
                                         })}
                                     </Picker>
@@ -534,17 +642,17 @@ const Step5 = () => {
                                     placeholder="Please enter name"
                                     placeholderTextColor={"gray"}
                                     style={styles.artistinput}
-                                    value={featuredartist}
-                                    onChangeText={newText => {
-                                        !route.params.primaryartist &&
-                                            setfeaturedartist(newText)
+                                    onSubmitEditing={() => {
+                                        onpushfeaturedartists(typedfeaturedartist)
                                     }}
+                                    value={typedfeaturedartist}
+                                    onChangeText={newText => { settypedfeaturedartist(newText) }}
                                 />
                             </View>
-                            <TouchableOpacity style={styles.addartistbutton}>
+                            {/* <TouchableOpacity style={styles.addartistbutton}>
                                 <FontAwesome5 name={"plus"} color={Primarycolor()} />
                                 <Text style={styles.addtext2}>ADD ANOTHER ARTIST</Text>
-                            </TouchableOpacity>
+                            </TouchableOpacity> */}
                             <View style={styles.hrg} />
                             <Text style={{ color: "white", fontWeight: "bold", marginTop: 0 }}>Additional Contributors</Text>
                             <Text style={{ fontSize: 8, color: "gray", marginTop: 5 }}>
@@ -552,13 +660,52 @@ const Step5 = () => {
                                 release but are not primary or featuring artists. You can credit producers,
                                 engineers & remixers here.
                             </Text>
-                            <TextInput
-                                style={styles.fulltextinput}
-                                placeholder="Please contributors names"
-                                placeholderTextColor={"gray"}
-                                onChangeText={newText => setcontributors(newText)}
-                                defaultValue={contributors}
-                            />
+                            <View style={{ marginTop: 5 }}>
+
+                                {Array.isArray(contributors) && contributors?.map((val, key) => {
+                                    const deleteaudio = (val) => {
+                                        const index = contributors.indexOf(val);
+                                        setdonothing(!donothing)
+                                        if (index > -1) { // only splice array when item is found
+                                            contributors.splice(index, 1); // 2nd parameter means remove one item only
+                                        }
+                                    }
+
+                                    return val ?
+                                        <View style={{ flexDirection: "row", margin: 5 }}>
+                                            <Text style={{ fontSize: 10, color: "white", width: "90%" }}>{val?.name}({val.role})</Text>
+                                            <TouchableOpacity onPress={() => deleteaudio(val)}>
+                                                <MaterialCommunityIcons name="delete-forever" color={"white"} size={25} />
+                                            </TouchableOpacity>
+                                        </View> : null
+
+                                })}
+                            </View>
+                            <Text style={{ color: "white", fontWeight: "bold", marginTop: 0 }}>Role</Text>
+                            <View style={styles.addsplitview}>
+                                <View style={styles.pickerview}>
+                                    <Picker
+                                        style={styles.trackpicker}
+                                        dropdownIconColor={"white"}
+                                        selectedValue={contributorrole}
+                                        onValueChange={(itemValue, itemIndex) => setcontributorrole(itemValue)}>
+                                        {contributorroles.map((item, index) => {
+                                            return (<Picker.Item label={item} value={item} key={index} />)
+                                        })}
+                                    </Picker>
+                                </View>
+                                <TextInput
+                                    placeholder="Please contributor name"
+                                    placeholderTextColor={"gray"}
+                                    style={styles.artistinput}
+                                    onSubmitEditing={() => {
+                                        onpushcontributors(typedcontributor)
+                                    }}
+                                    value={typedcontributor}
+                                    onChangeText={newText => { settypedcontributor(newText) }}
+                                />
+                            </View>
+
                             {/* <TouchableOpacity style={styles.addartistbutton}>
                                 <FontAwesome5 name={"plus"} color={Primarycolor()} />
                                 <Text style={styles.addtext2}>ADD ANOTHER CONTRIBUTOR</Text>
@@ -610,7 +757,7 @@ const Step5 = () => {
                                             placeholder="Type Lyrics here"
                                             placeholderTextColor={"gray"}
                                             multiline={true}
-                                            style={{ width: "50%", color: "white" }}
+                                            style={{ width: "50%", color: "white" ,textAlignVertical:"top"}}
                                             onChangeText={newText => setlyrics(newText)}
                                             defaultValue={lyrics}
                                         />
@@ -723,7 +870,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         width: "55%",
         color: "gray",
-        fontSize: 13
+        fontSize: 10
     },
     leftinput: {
         backgroundColor: Viewcolor(),
@@ -740,7 +887,7 @@ const styles = StyleSheet.create({
         marginTop: 10,
         paddingVertical: 10,
         paddingHorizontal: 10,
-        fontSize: 13
+        fontSize: 10
     },
     addtext2: {
         color: Primarycolor(),
@@ -760,6 +907,7 @@ const styles = StyleSheet.create({
         backgroundColor: Viewcolor(),
         marginLeft: 20,
         paddingHorizontal: 5,
+        fontSize:10,
         width: "55%",
         color: "gray"
     },
@@ -838,14 +986,18 @@ const styles = StyleSheet.create({
     },
     nextbutton: {
         backgroundColor: Primarycolor(),
-        paddingHorizontal: 35,
+        width: 100,
+        justifyContent: "center",
+        alignItems: "center",
         top: 10,
         paddingVertical: 5,
         borderRadius: 5,
     },
     previousbutton: {
         backgroundColor: Primarycolor(),
-        paddingHorizontal: 35,
+        width: 100,
+        justifyContent: "center",
+        alignItems: "center",
         top: 10,
         paddingVertical: 5,
         borderRadius: 5,

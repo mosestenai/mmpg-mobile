@@ -1,4 +1,4 @@
-import React ,{useState} from "react";
+import React, { useState } from "react";
 import { View, Text, Dimensions, SafeAreaView, ScrollView, TouchableOpacity, Image, StyleSheet } from "react-native";
 import { Secondarycolor } from "../Utils/color";
 import Icon from '@expo/vector-icons/FontAwesome5';
@@ -14,7 +14,7 @@ const ViewNotifications = () => {
     const route = useRoute();
     const [notifications, setnotifications] = useState(route.params.notifications.reverse());
 
-    
+
     return (
         <SafeAreaView style={{ height: deviceHeight, backgroundColor: "black" }}>
             <View style={{
@@ -36,8 +36,26 @@ const ViewNotifications = () => {
                         return (
                             <TouchableOpacity key={key} style={styles.notview}>
                                 <View style={{ flexDirection: "row" }}>
-                                    <Image
-                                        source={require("./../../assets/gif/icon2.png")}
+                                    <View style={{
+                                        marginLeft: "5%",
+                                        marginTop: 20,
+                                        padding: 5,
+                                        borderWidth: 2,
+                                        borderColor: "white",
+                                        borderRadius: 20,
+                                        justifyContent:"center",
+                                        alignItems:"center"
+                                    }}>
+                                        <Image
+                                            source={require("./../../assets/gif/icon.png")}
+                                            style={{
+                                                height: 15,
+                                                width: 15,
+                                            }}
+                                        />
+                                    </View>
+                                    {/* <Image
+                                        source={require("./../../assets/gif/icon.png")}
                                         style={{
                                             height: 30,
                                             width: 30,
@@ -47,13 +65,13 @@ const ViewNotifications = () => {
                                             borderColor: "white",
                                             borderRadius: 20
                                         }}
-                                    />
+                                    /> */}
                                     <Text style={styles.nottitle}>MMPG</Text>
                                     <Text style={styles.notdate}>{val.date}</Text>
                                 </View>
                                 <View style={styles.notmessage}>
                                     <Text style={{ color: "gray", fontSize: 11 }}>
-                                       {val.message}
+                                        {val.message}
                                     </Text>
                                 </View>
                             </TouchableOpacity>
