@@ -316,7 +316,7 @@ const Homeaccount = () => {
                     }}
 
                     height={220}
-                    width={deviceWidth-20}
+                    width={deviceWidth - (deviceWidth > 400 ? 30 : 20)} // from react-native
                     verticalLabelRotation={-60}
                     withInnerLines={true}
                     withVerticalLines={false}
@@ -738,7 +738,7 @@ const Homeaccount = () => {
                         flexDirection: "row",
                         alignSelf: "flex-end",
                         right: 10,
-
+                        marginBottom: 10
                     }}>
                     <Text style={{ color: Primarycolor(), fontSize: 12 }}>{editby}</Text>
                     <TouchableOpacity onPress={() => { graphdata?.length > 0 && setshowpickermenu(true) }} style={{
@@ -794,31 +794,55 @@ const Homeaccount = () => {
                             <Text style={{ color: focused == 'apple' ? Primarycolor() : "white" }}>Music</Text>
                         </TouchableOpacity>
                     </View>
-                    <View>
+                    {deviceWidth < 400 ? <View>
                         <View style={{ position: "absolute", right: 20, bottom: 60, zIndex: 1 }}>
                             <Text style={{ color: "white", fontSize: 10 }}>TOTAL</Text>
                             <Text style={{ color: "white", fontSize: 8 }}>{streamstoshow}</Text>
                         </View>
                         <View style={{
                             backgroundColor: Secondarycolor(),
-                            marginHorizontal:"3%"
+                            marginHorizontal: "3%"
                         }}>
-                        {graphdata?.length > 0 &&
-                            <View style={{
-                                alignItems:"center",
-                                justifyContent:"center"
-                            }}>
-                                <MyBezierLineChart />
+                            {graphdata?.length > 0 &&
+                                <View style={{
+                                    alignItems: "center",
+                                    justifyContent: "center"
+                                }}>
+                                    <MyBezierLineChart />
+                                </View>
+                            }
+                            <View style={{ alignSelf: "center", flexDirection: "row" }}>
+                                <Icon name="headphones-alt" color={Primarycolor()} style={{ marginTop: 0 }} />
+                                <Text style={{ color: "gray", marginLeft: 5, fontSize: 10 }}>Streams</Text>
                             </View>
-                        }
-                         <View style={{ alignSelf: "center", flexDirection: "row" }}>
-                        <Icon name="headphones-alt" color={Primarycolor()} style={{ marginTop: 0 }} />
-                        <Text style={{ color: "gray", marginLeft: 5, fontSize: 10 }}>Streams</Text>
-                    </View>
                         </View>
+                    </View> :
+                        <View style={{ marginTop: -10, backgroundColor: Secondarycolor(), marginHorizontal: "3%", borderRadius: 10 }}>
+                            <View style={{
+                                position: "absolute",
+                                right: 20,
+                                zIndex: 1,
+                                justifyContent: "center",
+                                alignItems: "center",
+                                bottom: 60
+                            }}>
+                                <Text style={{ color: "white", fontSize: 8 }}>TOTAL</Text>
+                                <Text style={{
+                                    marginLeft: 5,
+                                    fontSize: 8,
+                                    color: "white"
+                                }}>
+                                    {streamstoshow}  </Text>
+                            </View>
+                            {graphdata?.length > 0 && <MyBezierLineChart />}
+                            <View style={{ alignSelf: "center", flexDirection: "row" }}>
+                                <Icon name="headphones-alt" color={Primarycolor()} style={{ marginTop: 0 }} />
+                                <Text style={{ color: "gray", fontWeight: "bold", fontSize: 10, marginLeft: 5 }}>
+                                    Streams
+                                </Text>
+                            </View>
+                        </View>}
 
-                    </View>
-                   
 
                     {artists.map((val, key) => {
 

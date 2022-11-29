@@ -77,7 +77,7 @@ const Viewsong = () => {
                             },
                         ],
                     }}
-                    width={deviceWidth - 20} // from react-native
+                    width={deviceWidth - (deviceWidth > 400 ? 28 : 20)} // from react-native
                     height={220}
                     verticalLabelRotation={-60}
                     withInnerLines={true}
@@ -148,23 +148,23 @@ const Viewsong = () => {
     });
     const finallocationarray = [
         {
-            x: Array.isArray(locationnames)&&locationnames[4] + finallocation[0]?.x,
+            x: Array.isArray(locationnames) && locationnames[4] + finallocation[0]?.x,
             y: finallocation[0]?.x
         },
         {
-            x: Array.isArray(locationnames)&&locationnames[3] + finallocation[1]?.x,
+            x: Array.isArray(locationnames) && locationnames[3] + finallocation[1]?.x,
             y: finallocation[1]?.x
         },
         {
-            x: Array.isArray(locationnames)&&locationnames[2] + finallocation[2]?.x,
+            x: Array.isArray(locationnames) && locationnames[2] + finallocation[2]?.x,
             y: finallocation[2]?.x
         },
         {
-            x: Array.isArray(locationnames)&&locationnames[1] + finallocation[3]?.x,
+            x: Array.isArray(locationnames) && locationnames[1] + finallocation[3]?.x,
             y: finallocation[3]?.x
         },
         {
-            x: Array.isArray(locationnames)&&locationnames[0] + finallocation[4]?.x,
+            x: Array.isArray(locationnames) && locationnames[0] + finallocation[4]?.x,
             y: finallocation[4]?.x
         },
     ]
@@ -260,10 +260,10 @@ const Viewsong = () => {
                             <Text style={{ color: "white", marginLeft: 5 }}>{screendata.totalstreams?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</Text>
                         </TouchableOpacity>
                     </View>
-                    <TouchableOpacity onPress={() => navigation.navigate("Music")} style={{ 
-                        flexDirection: "row", marginTop: 25 ,
-                        position:"absolute",right:"5%"
-                        }}>
+                    <TouchableOpacity onPress={() => navigation.navigate("Music")} style={{
+                        flexDirection: "row", marginTop: 25,
+                        position: "absolute", right: "5%"
+                    }}>
                         <Text style={{ color: "white", fontSize: 10 }}>CATALOGUE</Text>
                         <Icon name="long-arrow-alt-right" color="white" style={{ marginLeft: 5 }} />
                     </TouchableOpacity>
@@ -361,7 +361,7 @@ const Viewsong = () => {
 
                             }}
                         />
-                        <View>
+                        <View style={{ position: "absolute", right: deviceWidth > 400 ? 20 : 10 }}>
                             <Text style={{ color: "white", fontWeight: "bold", fontSize: 10, marginTop: 15 }}>LOCATIONS</Text>
                             <View style={{
                                 flexDirection: "row",

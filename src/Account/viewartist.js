@@ -45,7 +45,7 @@ const Viewartist = () => {
                             },
                         ],
                     }}
-                    width={deviceWidth - 20} // from react-native
+                    width={deviceWidth - (deviceWidth > 400 ? 28 : 20)} // from react-native
                     height={220}
                     verticalLabelRotation={-60}
                     withInnerLines={true}

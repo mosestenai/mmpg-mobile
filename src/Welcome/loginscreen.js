@@ -140,6 +140,7 @@ export default function Loginscreen() {
                                     onChangeText={newText => setemail(newText)}
                                     defaultValue={email}
                                     placeholderTextColor="gray"
+                                    autoCapitalize='none'
 
                                 />
                             </View>
@@ -157,7 +158,6 @@ export default function Loginscreen() {
                                     defaultValue={password}
                                     secureTextEntry={passstatus}
                                     placeholderTextColor="gray"
-                                    autoCapitalize='none'
                                 />
                                 <TouchableOpacity onPress={() => {
                                     passiconname == "eye" ? setpassiconname("eye-slash") : setpassiconname("eye")

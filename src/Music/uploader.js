@@ -178,8 +178,7 @@ const Uploader = () => {
                 gh.push(element)
             }
         });
-       
-
+        setdrafts(gh)
         AsyncStorage.setItem("songssaved", JSON.stringify(gh))
         setnothing(!nothing)
     };

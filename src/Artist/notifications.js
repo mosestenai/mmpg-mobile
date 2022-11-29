@@ -11,6 +11,9 @@ import axios from "axios";
 import { Getuserdetails } from "../Utils/getuserdetails";
 import { pushtokenurl } from "../Utils/urls";
 
+const appConfig = require('./../../app.json');
+const projectId = appConfig?.expo?.extra?.eas?.projectId;
+
 const db = SQLite.openDatabase('db.Userdbs') // returns Database object
 
 var deviceHeight = Dimensions.get('window').height
@@ -77,6 +80,7 @@ const Notificationssettings = () => {
 
 
     const updatetoken = (token) => {
+        console.log(token)
         axios.post(pushtokenurl, {
             token: user.token,
             ptoken: token
@@ -219,7 +223,7 @@ const registerForPushNotificationsAsync = async () => {
             alert('Failed to get push token for push notification!');
             return;
         }
-        token = (await Notifications.getExpoPushTokenAsync()).data;
+        token = (await Notifications.getExpoPushTokenAsync({ projectId: projectId })).data;
         console.log(token)
         // updatetoken(token)
     } else {
