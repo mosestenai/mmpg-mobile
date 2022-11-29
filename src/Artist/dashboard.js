@@ -67,7 +67,7 @@ const Artistdashboard = () => {
         syncdata(user.token)
     }, 5000);
 
-    const syncdata =(e) =>{
+    const syncdata = (e) => {
         axios.post(syncdataurl, {
             token: e,
         }).then(function (response) {
@@ -79,12 +79,12 @@ const Artistdashboard = () => {
                             // success callback which sends two things Transaction object and ResultSet Object
                             (tx, results) => {
                                 if (results.rowsAffected > 0) {
-                                } 
+                                }
                             },
                             (txObj, error) => console.log('Error ', error)
                         ) // end executeSQL
                     }) // end transaction
-                  
+
                 } else {
                 }
             } else {
@@ -107,7 +107,7 @@ const Artistdashboard = () => {
                     setpending(response.data.pending)
                     setreleases(response.data.releases)
                     setnotifications(response.data?.notifications)
-                    var count = response.data?.notifications.reduce(function(n, val) {
+                    var count = response.data?.notifications.reduce(function (n, val) {
                         return n + (val.status === "unread");
                     }, 0);
                     setunreadnotification(count)
@@ -129,9 +129,9 @@ const Artistdashboard = () => {
         });
     }
 
-    
 
-    
+
+
 
 
     //Updating profile photo
@@ -236,23 +236,23 @@ const Artistdashboard = () => {
         }
     };
 
-  const  readmessage =(id) =>{
-    var index2 = notifications.findIndex(obj => obj?.unique == id );
-    notifications[index2].status = "read";
-    axios.post(readnotificationurl, {
-        token: user.token,
-        notifications: notifications
-    }).then(function (response) {
-        console.log(response.data)
-        if (!response.data.message) {
-           
-        } else {
-           
-        }
-        // 
-    }).catch(function (error) {
-    });
-  }
+    const readmessage = (id) => {
+        var index2 = notifications.findIndex(obj => obj?.unique == id);
+        notifications[index2].status = "read";
+        axios.post(readnotificationurl, {
+            token: user.token,
+            notifications: notifications
+        }).then(function (response) {
+            console.log(response.data)
+            if (!response.data.message) {
+
+            } else {
+
+            }
+            // 
+        }).catch(function (error) {
+        });
+    }
 
 
 
@@ -264,7 +264,7 @@ const Artistdashboard = () => {
                 width: "90%",
                 marginHorizontal: "5%"
             }}>
-                
+
                 <Text style={{ color: "white", fontSize: 20, width: "60%", marginTop: 10, fontWeight: "bold" }}>Dashboard</Text>
                 <TouchableOpacity
                     onPress={() => navigation.navigate('authentication', { screen: 'uploader' })}
@@ -289,8 +289,17 @@ const Artistdashboard = () => {
                     <View style={{ width: "60%", marginTop: 10 }}>
                         <View style={{ flexDirection: "row" }}>
                             <TouchableOpacity style={styles.dateview}>
-                                <Text style={styles.textin} >{day}</Text>
-                                <Text style={styles.textin2} >{months[month]}</Text>
+                                <Text style={{
+                                     color: "white",
+                                     fontWeight:"900",
+                                     fontSize: 30
+                                }} >{day}</Text>
+                                <Text style={{
+                                     color: "white",
+                                     fontWeight: "bold",
+                                     marginTop: -8,
+                                     fontSize: 15
+                                }} >{months[month]}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.pendingview}>
                                 {loading ? <BallIndicator style={styles.pendingtext} size={10} color={"white"} /> : <Text style={styles.pendingnumber}>{pending ? pending : '0'}</Text>}
@@ -330,26 +339,25 @@ const Artistdashboard = () => {
             </View>
             <View style={{ marginHorizontal: "5%", marginTop: 10 }}>
                 <View style={{ flexDirection: "row" }}>
-                    <View style={{ width: "95%",flexDirection:"row" }}>
+                    <View style={{ width: "95%", flexDirection: "row" }}>
                         <Text style={{ fontSize: 20, color: "white", fontWeight: "bold" }}>Notifications</Text>
-                        {notifications?.length > 0 &&   <View style={{
-                            backgroundColor:"#e8005e",
-                            height:15,
-                            width:15,
-                            borderRadius:15,
-                            justifyContent:"center",alignItems:"center"
+                        {notifications?.length > 0 && <View style={{
+                            backgroundColor: "#e8005e",
+                            height: 15,
+                            width: 15,
+                            borderRadius: 15,
+                            justifyContent: "center", alignItems: "center"
 
                         }}>
-                            <Text style={{color:"white",fontSize:10}}>{unreadnotification}</Text>
+                            <Text style={{ color: "white", fontSize: 10 }}>{unreadnotification}</Text>
                         </View>}
                     </View>
-
                     <TouchableOpacity
-                     onPress={() => {
-                     notifications?.length > 0 && navigation.navigate("viewnotifications", {
-                            notifications: notifications
-                        })
-                    }}>
+                        onPress={() => {
+                            notifications?.length > 0 && navigation.navigate("viewnotifications", {
+                                notifications: notifications
+                            })
+                        }}>
                         <Icon name="angle-right" color="white" size={25} />
                     </TouchableOpacity>
                 </View>
@@ -358,7 +366,7 @@ const Artistdashboard = () => {
                 <View style={{ marginHorizontal: "5%", marginTop: 10, paddingBottom: 100 }}>
                     <View style={styles.notificationscontainer}>
                         {Array.isArray(notifications) ? notifications.reverse().slice(0, 2)?.map((val, key) => {
-                            
+
                             return (
                                 <TouchableOpacity
                                     key={key}
@@ -371,24 +379,33 @@ const Artistdashboard = () => {
                                     style={{
                                         width: "90%",
                                         marginBottom: 10,
+                                        paddingTop:5,
                                         flexDirection: "row"
                                     }}>
                                     <View style={{
                                         marginLeft: "5%",
                                         marginTop: 20,
                                         padding: 5,
-                                        borderWidth: 2,
-                                        // borderColor: bordercolor ? "white" : Primarycolor(),
-                                        borderColor: val.status === 'unread' ? Primarycolor() : "white",
-                                        borderRadius: 20
+
                                     }}>
-                                        <Image
-                                            source={require("./../../assets/gif/icon.png")}
-                                            style={{
-                                                height: 15,
-                                                width: 15,
-                                            }}
-                                        />
+                                        {val.status === 'unread' ?
+                                            <Image
+                                                source={require("./../../assets/images/png/bluelogo.png")}
+                                                style={{
+                                                    height: 35,
+                                                    width: 35,
+                                                    marginTop:-10
+                                                }}
+                                            /> :
+                                            <Image
+                                                source={require("./../../assets/images/png/roundlogo.png")}
+                                                style={{
+                                                    height: 35,
+                                                    width: 35,
+                                                    marginTop:-10
+                                                }}
+                                            />
+                                        }
                                     </View>
 
                                     <View style={{
@@ -396,10 +413,8 @@ const Artistdashboard = () => {
                                         width: "85%",
                                         paddingTop: 10
                                     }}>
-                                        <Text style={{ color: "gray", fontSize: 10, position: "absolute", right: 2 }}>{val.date}</Text>
+                                        <Text style={{ color: "gray", fontSize: 10, position: "absolute", right: "7%" }}>{val.date}</Text>
                                         <Text style={{ fontWeight: "bold", color: "white" }}>MMPG</Text>
-
-
                                         <Text style={{ color: "gray" }}>
                                             {val.message.substring(0, 20)}
                                         </Text>

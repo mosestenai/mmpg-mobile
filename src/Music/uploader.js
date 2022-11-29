@@ -14,6 +14,8 @@ import { BallIndicator } from "react-native-indicators";
 import { Getuserdetails } from "../Utils/getuserdetails";
 import useInterval from 'use-interval'
 import * as WebBrowser from 'expo-web-browser';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Getsavedsongs } from "../Utils/getsavedsongs";
 
 const db = SQLite.openDatabase('db.Userdbs') // returns Database object
 
@@ -23,7 +25,7 @@ const db = SQLite.openDatabase('db.Userdbs') // returns Database object
 var deviceHeight = Dimensions.get('window').height
 var deviceWidth = Dimensions.get('window').width
 const Uploader = () => {
-
+    const savedsongs = Getsavedsongs()
     const navigation = useNavigation();
     const [paid, setpaid] = useState(false);
     const user = Getuserdetails();
@@ -93,7 +95,7 @@ const Uploader = () => {
                     setpaid(true)
                     setlinkview(false)
                 } else {
-                    setpaid(false)
+                    navigation.navigate("started")
                 }
             } else {
                 setlinkview(true)
@@ -126,20 +128,16 @@ const Uploader = () => {
     }
 
     //check draft
-    const checkdraft = () => {
-        db.transaction(tx => {
-            // sending 4 arguments in executeSql
-            tx.executeSql('SELECT * FROM Tracks', null, // passing sql query and parameters:null
-                // success callback which sends two things Transaction object and ResultSet Object
-                (txObj, { rows: { _array } }) => {
-                    if (_array[0]?.title) {
-                        setdrafts(_array)
-                    }
-                },
-                // failure callback which sends two things Transaction object and Error
-                (txObj, error) => console.log('Error ', error)
-            ) // end executeSQL
-        }) // end transaction
+    const checkdraft = async () => {
+        try {
+            const value = await AsyncStorage.getItem('songssaved')
+            if (value !== null) {
+                const gh = JSON.parse(value);
+                setdrafts(gh)
+            }
+        } catch (e) {
+            console.log(e)
+        }
     }
 
     const fetchtracks = (e) => {
@@ -172,17 +170,18 @@ const Uploader = () => {
         });
     }
 
-    const handledelete = (val) => {
-        db.transaction(tx => {
-            tx.executeSql('DELETE FROM Tracks WHERE id=?', [val],
-                (txObj, resultSet) => {
-                    if (resultSet.rowsAffected > 0) {
-                        checkdraft()
-                        setnothing(!nothing)
-                    }
-                }),
-                (txObj, error) => console.log('Error ', error)
-        })
+    const handledelete = async (val) => {
+
+        const gh = [];
+        savedsongs.forEach(element => {
+            if (element.releasetitle !== val) {
+                gh.push(element)
+            }
+        });
+       
+
+        AsyncStorage.setItem("songssaved", JSON.stringify(gh))
+        setnothing(!nothing)
     };
 
     const requesttakedown = (id) => {
@@ -227,8 +226,8 @@ const Uploader = () => {
     }
 
 
-     //open link
-     const openlink = async () => {
+    //open link
+    const openlink = async () => {
         let result = await WebBrowser.openBrowserAsync('https://mmpg.eazistey.co.ke/' + user.token + '/' + user.type);
         setResult(result);
         // Linking.openURL(smartlink)
@@ -251,26 +250,26 @@ const Uploader = () => {
                         <View style={{
                             backgroundColor: "white",
                             padding: 15,
-                            borderRadius:5
+                            borderRadius: 5
                         }}>
                             <Text style={{ fontWeight: "bold" }}>Pending payment status!!</Text>
-                            <View style={{flexDirection:"row"}}>
-                            <TouchableOpacity
-                                onPress={()=>setlinkview(false)}
-                                style={{ backgroundColor: Primarycolor(), padding: 5, marginTop: 5, borderRadius: 5,marginRight:5}}
+                            <View style={{ flexDirection: "row" }}>
+                                <TouchableOpacity
+                                    onPress={() => setlinkview(false)}
+                                    style={{ backgroundColor: Primarycolor(), padding: 5, marginTop: 5, borderRadius: 5, marginRight: 5 }}
 
-                            >
-                                <Text style={{ color: "white" }}>LATER</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                onPress={openlink}
-                                style={{ backgroundColor: Primarycolor(), padding: 5, marginTop: 5, borderRadius: 5 }}
+                                >
+                                    <Text style={{ color: "white" }}>LATER</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    onPress={openlink}
+                                    style={{ backgroundColor: Primarycolor(), padding: 5, marginTop: 5, borderRadius: 5 }}
 
-                            >
-                                <Text style={{ color: "white" }}>PROCEED TO PAYMENT</Text>
-                            </TouchableOpacity>
+                                >
+                                    <Text style={{ color: "white" }}>PROCEED TO PAYMENT</Text>
+                                </TouchableOpacity>
                             </View>
-                            
+
                         </View>}
                 />}
             <View style={styles.fixedview}>
@@ -335,7 +334,7 @@ const Uploader = () => {
                                         <TouchableOpacity style={styles.modifytext} onPress={() => navigation.navigate('authentication', { screen: 'step1', params: { data: val } })}>
                                             <Text style={{ color: Primarycolor(), fontWeight: "bold", fontSize: 10 }}>Modify</Text>
                                         </TouchableOpacity>
-                                        <TouchableOpacity style={styles.deletebtn} onPress={()=>requesttakedown(val.id)}>
+                                        <TouchableOpacity style={styles.deletebtn} onPress={() => requesttakedown(val.id)}>
                                             <MaterialCommunityIcons name="delete-forever" color={"white"} size={25} />
                                         </TouchableOpacity>
                                     </View>
@@ -344,6 +343,7 @@ const Uploader = () => {
                         })}
 
                         {drafts.map((val, key) => {
+
 
                             return (
                                 <View style={styles.releasesviews} key={key}>
@@ -358,10 +358,10 @@ const Uploader = () => {
                                     </View>
                                     <View style={styles.line} />
                                     <View style={{ flexDirection: "row", marginTop: 5 }}>
-                                        {val.imgurl ?
+                                        {val?.coverimage?.uri ?
                                             <View style={styles.songcover}>
                                                 <Image
-                                                    source={{ uri: val.imgurl }}
+                                                    source={{ uri: val.coverimage.uri }}
                                                     style={{
                                                         height: "100%",
                                                         width: "100%",
@@ -371,12 +371,12 @@ const Uploader = () => {
                                             <View style={styles.songcover2} />
                                         }
 
-                                        <Text style={styles.songname}>{val.title}</Text>
+                                        <Text style={styles.songname}>{val.releasetitle}</Text>
                                         <Text style={styles.releasedatetext}>Draft</Text>
                                         <TouchableOpacity style={styles.modifytext} onPress={() => navigation.navigate('authentication', { screen: 'step1', params: { data: val } })}>
                                             <Text style={{ color: Primarycolor(), fontWeight: "bold", fontSize: 10 }}>Continue</Text>
                                         </TouchableOpacity>
-                                        <TouchableOpacity style={styles.deletebtn} onPress={() => handledelete(val.id)}>
+                                        <TouchableOpacity style={styles.deletebtn} onPress={() => handledelete(val.releasetitle)}>
                                             <MaterialCommunityIcons name="delete-forever" color={"white"} size={25} />
                                         </TouchableOpacity>
                                     </View>

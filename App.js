@@ -43,10 +43,10 @@ const App = () => {
                     db.transaction(tx => {
                          
                          tx.executeSql(
-                              'CREATE TABLE IF NOT EXISTS User (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT,username TEXT,type TEXT,unid TEXT,url TEXT,token TEXT,publish TEXT)'
+                              'CREATE TABLE IF NOT EXISTS User (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT,username TEXT,type TEXT,unid TEXT,url TEXT,token TEXT,publish TEXT,ptoken TEXT)'
                          )
                          tx.executeSql(
-                              'CREATE TABLE IF NOT EXISTS Fingerprint (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT,username TEXT,type TEXT,unid TEXT,url TEXT,token TEXT,publish TEXT)'
+                              'CREATE TABLE IF NOT EXISTS Fingerprint (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT,username TEXT,type TEXT,unid TEXT,url TEXT,token TEXT,publish TEXT,ptoken TEXT)'
                          )
                          tx.executeSql(
                               'CREATE TABLE IF NOT EXISTS Tracks (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT,imgurl TEXT)'

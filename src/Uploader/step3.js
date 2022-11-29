@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Children } from "react";
 import { View, Text, SafeAreaView, ScrollView, StyleSheet, TouchableOpacity, Dimensions, TextInput, Image, Alert } from "react-native";
 import { Primarycolor, Secondarycolor, Semisecondarycolor, Viewcolor } from "../Utils/color";
 import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
@@ -14,6 +14,8 @@ import * as SQLite from 'expo-sqlite';
 import Spinner from "react-native-loading-spinner-overlay/lib";
 import { BallIndicator } from "react-native-indicators";
 import { MaterialCommunityIcons } from "../Components/materialcommunity";
+import { Getsavedsongs } from "../Utils/getsavedsongs";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const db = SQLite.openDatabase('db.Userdbs') // returns Database object
 
@@ -23,7 +25,7 @@ var deviceheight = Dimensions.get('window').height;
 
 
 const Step3 = () => {
-
+    const savedsongs = Getsavedsongs()
     const navigation = useNavigation();
     const [releasetitle, setreleasetitle] = useState('');
     const [on, seton] = useState(true);
@@ -40,10 +42,10 @@ const Step3 = () => {
 
     const [featuredartists, setfeaturedartists] = useState([]);
 
-    
+
 
     useEffect(() => {
-
+        checkdraft()
         db.transaction(tx => {
             // sending 4 arguments in executeSql
             tx.executeSql('SELECT * FROM User', null, // passing sql query and parameters:null
@@ -56,6 +58,27 @@ const Step3 = () => {
             ) // end executeSQL
         }) // end transaction
     }, []);
+    const checkdraft = async () => {
+        const hi = []
+        try {
+            const value = await AsyncStorage.getItem('songssaved')
+            if (value !== null) {
+                const gh = JSON.parse(value);
+                gh?.forEach(element => {
+                    if (element.releasetitle === route?.params?.releasetitle && element.featuredartists) {
+                        hi.push(element.featuredartists)
+                        setartist(element.primaryartist)
+                    }
+                });
+            }
+        } catch (e) {
+            console.log(e)
+        }
+
+        if (hi.length > 0) {
+            setfeaturedartists(hi[0])
+        }
+    }
 
     const getartists = (e) => {
         axios.post(Getartistdetailsurl, {
@@ -86,7 +109,7 @@ const Step3 = () => {
         });
     }
 
-  
+
 
 
     const pushartist = () => {
@@ -98,6 +121,8 @@ const Step3 = () => {
         //     setartists([artist])
 
     }
+
+
 
 
     const gotonextpage = () => {
@@ -112,7 +137,7 @@ const Step3 = () => {
             );
         } else {
 
-            if(route.params.audiofile.length < 2 && !artist){
+            if (route.params.audiofile.length < 2 && !artist) {
                 Alert.alert(
                     "Error",
                     'Enter a primary artist to continue',
@@ -120,7 +145,7 @@ const Step3 = () => {
                         { text: "OK" }
                     ]
                 );
-            }else{
+            } else {
                 navigation.navigate("step4", {
                     releasetitle: route.params.releasetitle,
                     coverimage: route.params.coverimage,
@@ -134,31 +159,40 @@ const Step3 = () => {
 
 
     const saveforlater = () => {
-        db.transaction(tx => {
+        if (!artist || !featuredartists) {
+            Alert.alert(
+                "Error",
+                'No data to be saved',
+                [
+                    { text: "OK" }
+                ]
+            );
+        } else {
+            let obj = {
+                releasetitle: route.params.releasetitle,
+                coverimage: route.params.coverimage,
+                audiofile: route.params.audiofile,
+                featuredartists: featuredartists,
+                primaryartist: artist,
+            };
+            const gh = [];
+            savedsongs.forEach(element => {
+                if (element.releasetitle !== route.params.releasetitle) {
+                    gh.push(element)
+                }
+            });
+            gh.push(obj)
 
-            tx.executeSql('INSERT INTO Tracks (title,imgurl) values (?,?)', [route.params.releasetitle, route.params.coverimage.uri],
-                (txObj, resultSet) => {
-                    Alert.alert(
-                        "Success",
-                        'Saved successfully',
-                        [
-                            { text: "OK" }
-                        ]
-                    );
-                    setTimeout(() => {
-                        navigation.navigate("Home")
-                    }, 3000);
-                },
-                (txObj, error) => {
-                    Alert.alert(
-                        "Error",
-                        error + 'Contact admin',
-                        [
-                            { text: "OK" }
-                        ]
-                    );
-                })
-        }) // end transaction
+            AsyncStorage.setItem("songssaved", JSON.stringify(gh));
+            Alert.alert(
+                "Success",
+                'Saved successfully',
+                [
+                    { text: "OK" }
+                ]
+            );
+            navigation.navigate("Home")
+        }
 
     }
 
@@ -179,12 +213,12 @@ const Step3 = () => {
             );
         } else {
             featuredartists.push(artistto)
-                setnothing(!nothing)
+            setnothing(!nothing)
             // if (user.type === 'Artist') {
             //     featuredartists.push(artistto)
             // } else {
             //     featuredartists.push(e)
-                
+
             //     setdonothing(!donothing)
             // }
         }
@@ -224,7 +258,6 @@ const Step3 = () => {
                             release. You should only credit artists here who feature on 50% or more of the
                             tracks on your release. You can add additional artist credits that are specific to
                             individual tracks on Step 5
-
                         </Text>
                     </View>
 

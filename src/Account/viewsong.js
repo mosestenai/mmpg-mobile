@@ -48,6 +48,7 @@ const Viewsong = () => {
     const uk = route.params.data?.locationstreams[3]
     const us = route.params.data?.locationstreams[4]
     const streams = route.params.data?.locationstreams
+    const [locationnames, setlocationnames] = useState(route.params.data?.locationnames);
 
     const widthAndHeight = 250
     const series = [123, 321, 123, 789, 537]
@@ -90,15 +91,19 @@ const Viewsong = () => {
                         backgroundColor: Primarycolor(),
                         backgroundGradientFrom: Secondarycolor(),
                         backgroundGradientTo: Secondarycolor(),
-                        linejoinType: "bevel",
-                        decimalPlaces: 1, // optional, defaults to 2dp
-                        //color: (opacity = 255) => `rgba(0, 0, 0, ${opacity})`,
+                        // linejoinType: "bevel",
+                        decimalPlaces: 0, // optional, defaults to 2dp
+                        //color: (opacity = 255) => `rgba(0, 0, 0, ${opacity})`, 
                         color: (opacity = 255) => Primarycolor(),
                         labelColor: (opacity = 255) => "white",
                         style: {
                             borderRadius: 16,
-                            borderBottomLeftRadius: 5
+                            borderBottomLeftRadius: 5,
                         },
+                        propsForBackgroundLines: {
+                            stroke: "white",
+                        },
+                        linejoinType: "bevel",
                     }}
                     bezier
                     style={{
@@ -111,7 +116,7 @@ const Viewsong = () => {
             </>
         );
     };
- //calculate whole value to be under 10
+    //calculate whole value to be under 10
     const calculate = (val, all) => {
         var result = all.map(function (x) {
             return parseInt(x, 10);
@@ -132,15 +137,38 @@ const Viewsong = () => {
     }
 
     const locationarray = [
-        { x: `Australia(${calculate2(australia, streams)}%)`, y: calculate(australia, streams) },
-        { x: `Europe(${calculate2(europe, streams)}%)`, y: calculate(europe, streams) },
-        { x: `Canada(${calculate2(canada, streams)}%)`, y: calculate(canada, streams) },
-        { x: `Uk(${calculate2(uk, streams)}%)`, y: calculate(uk, streams) },
-        { x: `USA(${calculate2(us, streams)}%)`, y: calculate(us, streams) }
+        { x: `(${calculate2(australia, streams)}%)`, y: calculate(australia, streams) },
+        { x: `(${calculate2(europe, streams)}%)`, y: calculate(europe, streams) },
+        { x: `(${calculate2(canada, streams)}%)`, y: calculate(canada, streams) },
+        { x: `(${calculate2(uk, streams)}%)`, y: calculate(uk, streams) },
+        { x: `(${calculate2(us, streams)}%)`, y: calculate(us, streams) }
     ]
-    const finallocationarray = locationarray.sort(function (a, b) {
+    const finallocation = locationarray.sort(function (a, b) {
         return parseFloat(a.y) - parseFloat(b.y);
     });
+    const finallocationarray = [
+        {
+            x: Array.isArray(locationnames)&&locationnames[4] + finallocation[0]?.x,
+            y: finallocation[0]?.x
+        },
+        {
+            x: Array.isArray(locationnames)&&locationnames[3] + finallocation[1]?.x,
+            y: finallocation[1]?.x
+        },
+        {
+            x: Array.isArray(locationnames)&&locationnames[2] + finallocation[2]?.x,
+            y: finallocation[2]?.x
+        },
+        {
+            x: Array.isArray(locationnames)&&locationnames[1] + finallocation[3]?.x,
+            y: finallocation[3]?.x
+        },
+        {
+            x: Array.isArray(locationnames)&&locationnames[0] + finallocation[4]?.x,
+            y: finallocation[4]?.x
+        },
+    ]
+
 
 
     const sorts = ["Last 28 days", "Last 90 days", "Lifetime"]
@@ -232,7 +260,10 @@ const Viewsong = () => {
                             <Text style={{ color: "white", marginLeft: 5 }}>{screendata.totalstreams?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</Text>
                         </TouchableOpacity>
                     </View>
-                    <TouchableOpacity onPress={() => navigation.navigate("Music")} style={{ flexDirection: "row", marginTop: 25 }}>
+                    <TouchableOpacity onPress={() => navigation.navigate("Music")} style={{ 
+                        flexDirection: "row", marginTop: 25 ,
+                        position:"absolute",right:"5%"
+                        }}>
                         <Text style={{ color: "white", fontSize: 10 }}>CATALOGUE</Text>
                         <Icon name="long-arrow-alt-right" color="white" style={{ marginLeft: 5 }} />
                     </TouchableOpacity>
@@ -280,7 +311,7 @@ const Viewsong = () => {
                                 setgraphdata(screendata.spotifystreams)
                                 setnothing(!nothing)
                                 seteditby("Lifetime")
-                                setstreamstoshow(screendata.spotifystreams?.reduce((a, b) => a + b, 0))
+                                setstreamstoshow(screendata.spotifystreams?.reduce((a, b) => parseInt(a) + parseInt(b), 0))
                             }}
                             style={{ marginRight: 20, flexDirection: "row" }}>
                             <FontAwesome name="spotify" color={focused == 'spotify' ? Primarycolor() : "white"} size={15} style={{ marginTop: 3, marginRight: 3 }} />
@@ -292,7 +323,7 @@ const Viewsong = () => {
                                 setgraphdata(screendata.applestreams)
                                 setnothing(!nothing)
                                 seteditby("Lifetime")
-                                setstreamstoshow(screendata.applestreams?.reduce((a, b) => a + b, 0))
+                                setstreamstoshow(screendata.applestreams?.reduce((a, b) => parseInt(a) + parseInt(b), 0))
                             }}
                             style={{ marginRight: 0, flexDirection: "row" }}>
                             <Icon name="apple-alt" color={focused == 'apple' ? Primarycolor() : "white"} style={{ marginTop: 3, marginRight: 3 }} />
@@ -317,7 +348,7 @@ const Viewsong = () => {
                         <VictoryPie
                             padAngle={({ datum }) => datum.y}
                             innerRadius={25}
-                            colorScale={["#000062","#62006e","#a2006e","#d81665",  "#ff5757"]}
+                            colorScale={["#000062", "#62006e", "#a2006e", "#d81665", "#ff5757"]}
                             data={finallocationarray}
                             height={200}
                             width={235}
@@ -331,7 +362,7 @@ const Viewsong = () => {
                             }}
                         />
                         <View>
-                            <Text style={{ color: "white", fontWeight: "bold", fontSize: 10 ,marginTop:15}}>LOCATIONS</Text>
+                            <Text style={{ color: "white", fontWeight: "bold", fontSize: 10, marginTop: 15 }}>LOCATIONS</Text>
                             <View style={{
                                 flexDirection: "row",
                                 marginTop: 50
@@ -342,7 +373,7 @@ const Viewsong = () => {
                                 borderRadius: 10,
                                 marginRight: 5,
                                 marginTop: 3
-                            }} /><Text style={{ color: "gray",fontSize:10 }}>High</Text></View>
+                            }} /><Text style={{ color: "gray", fontSize: 10 }}>High</Text></View>
                             <View style={{
                                 flexDirection: "row",
                                 marginTop: 2
@@ -353,7 +384,7 @@ const Viewsong = () => {
                                 borderRadius: 10,
                                 marginRight: 5,
                                 marginTop: 3
-                            }} /><Text style={{ color: "gray" ,fontSize:10}}>Medium</Text></View>
+                            }} /><Text style={{ color: "gray", fontSize: 10 }}>Medium</Text></View>
                             <View style={{
                                 flexDirection: "row",
                                 marginTop: 2
@@ -364,7 +395,7 @@ const Viewsong = () => {
                                 borderRadius: 10,
                                 marginRight: 5,
                                 marginTop: 3
-                            }} /><Text style={{ color: "gray",fontSize:10 }}>Low</Text></View>
+                            }} /><Text style={{ color: "gray", fontSize: 10 }}>Low</Text></View>
                             <View style={{ flexDirection: "row", marginTop: 60 }}>
                                 <Icon name="headphones-alt" color={"gray"} style={{ marginTop: 0 }} />
                                 <Text style={{ color: "gray", marginLeft: 5, fontSize: 10 }}>Streams</Text>

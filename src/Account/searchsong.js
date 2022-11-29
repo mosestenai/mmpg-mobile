@@ -184,7 +184,11 @@ const Searchsong = () => {
                                         <Text style={{ color: "gray", marginLeft: 5 }}>{val.totalstreams?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</Text>
                                     </View>
                                 </View>
-                                <TouchableOpacity style={{ marginTop: 10 }} onPress={() => navigation.navigate("Viewsong", {
+                                <TouchableOpacity style={{ 
+                                    marginTop: 10,
+                                    position:"absolute",
+                                    right:20
+                                 }} onPress={() => navigation.navigate("Viewsong", {
                                     data: val
                                 })}>
                                     <Icon name="angle-right" color="white" size={20} />
@@ -192,7 +196,6 @@ const Searchsong = () => {
                             </View>
                         )
                     })}
-
 
                 </View>
             </ScrollView>

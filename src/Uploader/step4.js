@@ -12,6 +12,8 @@ import { Getuserdetails } from "../Utils/getuserdetails";
 import * as SQLite from 'expo-sqlite';
 import { Getartistdetailsurl } from "../Utils/urls";
 import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Getsavedsongs } from "../Utils/getsavedsongs";
 
 const db = SQLite.openDatabase('db.Userdbs') // returns Database object
 
@@ -22,7 +24,7 @@ var deviceheight = Dimensions.get('window').height;
 
 
 const Step4 = () => {
-
+    const savedsongs = Getsavedsongs()
     const navigation = useNavigation();
     const route = useRoute();
     const user = Getuserdetails();
@@ -41,7 +43,7 @@ const Step4 = () => {
 
 
     useEffect(() => {
-
+        checkdraft()
         db.transaction(tx => {
             // sending 4 arguments in executeSql
             tx.executeSql('SELECT * FROM User', null, // passing sql query and parameters:null
@@ -53,6 +55,27 @@ const Step4 = () => {
             ) // end executeSQL
         }) // end transaction
     }, []);
+    const checkdraft = async () => {
+        try {
+            const value = await AsyncStorage.getItem('songssaved')
+            if (value !== null) {
+                const gh = JSON.parse(value);
+                gh?.forEach(element => {
+                    if (element.releasetitle === route?.params?.releasetitle) {
+                        setlabelname(element.labelname && element.labelname)
+                        setcopyrightyear(element.copyrightyear && element.copyrightyear)
+                        setcopyrightholder(element.copyrightholder && element.copyrightholder)
+                        setupc(element.upc && element.upc)
+                        setgenre(element.genre && element.genre)
+
+                    }
+                });
+            }
+        } catch (e) {
+            console.log(e)
+        }
+
+    }
 
     const getartists = (e) => {
 
@@ -174,38 +197,51 @@ const Step4 = () => {
     }
 
     const saveforlater = () => {
-        db.transaction(tx => {
+        if (!copyrightholder || !copyrightyear) {
+            Alert.alert(
+                "Error",
+                'No data to be saved',
+                [
+                    { text: "OK" }
+                ]
+            );
+        } else {
+            let obj = {
+                releasetitle: route.params.releasetitle,
+                coverimage: route.params.coverimage,
+                audiofile: route.params.audiofile,
+                featuredartists: route.params.featuredartists,
+                primaryartist: route.params.primaryartist,
+                labelname: labelname,
+                copyrightyear: copyrightyear,
+                copyrightholder: copyrightholder,
+                upc: upc,
+                genre: genre
+            };
+            const gh = [];
+            savedsongs.forEach(element => {
+                if (element.releasetitle !== route.params.releasetitle) {
+                    gh.push(element)
+                }
+            });
+            gh.push(obj)
 
-            tx.executeSql('INSERT INTO Tracks (title,imgurl) values (?,?)', [route.params.releasetitle, route.params.coverimage.uri],
-                (txObj, resultSet) => {
-                    Alert.alert(
-                        "Success",
-                        'Saved successfully',
-                        [
-                            { text: "OK" }
-                        ]
-                    );
-                    setTimeout(() => {
-                        navigation.navigate("Home")
-                    }, 3000);
-                },
-                (txObj, error) => {
-                    Alert.alert(
-                        "Error",
-                        error + 'Contact admin',
-                        [
-                            { text: "OK" }
-                        ]
-                    );
-                })
-        }) // end transaction
-
+            AsyncStorage.setItem("songssaved", JSON.stringify(gh));
+            Alert.alert(
+                "Success",
+                'Saved successfully',
+                [
+                    { text: "OK" }
+                ]
+            );
+            navigation.navigate("Home")
+        }
     }
     return (
         <SafeAreaView style={{ height: deviceheight, backgroundColor: "black" }}>
             <View style={styles.fixedview}>
                 <TouchableOpacity style={styles.savelater} onPress={saveforlater}>
-                    <SimpleLineIcons name="logout" color="white" size={25}  />
+                    <SimpleLineIcons name="logout" color="white" size={25} />
                     <Text style={{ color: "white", marginLeft: 5, marginTop: 3 }}>Save for Later</Text>
                 </TouchableOpacity>
                 <View style={{
@@ -495,8 +531,8 @@ const styles = StyleSheet.create({
     nextbutton: {
         backgroundColor: Primarycolor(),
         width: 100,
-        justifyContent:"center",
-        alignItems:"center",
+        justifyContent: "center",
+        alignItems: "center",
         top: 10,
         paddingVertical: 5,
         borderRadius: 5,
@@ -504,8 +540,8 @@ const styles = StyleSheet.create({
     previousbutton: {
         backgroundColor: Primarycolor(),
         width: 100,
-        justifyContent:"center",
-        alignItems:"center",
+        justifyContent: "center",
+        alignItems: "center",
         top: 10,
         paddingVertical: 5,
         borderRadius: 5,

@@ -37,7 +37,7 @@ const Registerscreen = () => {
     const [passstatus, setpassstatus] = useState(true);
     const [passiconname, setpassiconname] = useState('eye-slash');
 
-    const image = require('./../../assets/test.png')
+    const image = require('./../../assets/images/png/register.png')
 
 
 
@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         marginTop: 30,
-        height:40,
+        height: 40,
         borderRadius: 5,
         width: "95%"
 
@@ -274,12 +274,10 @@ const styles = StyleSheet.create({
 
     },
     loginContainer: {
-        marginTop: deviceHeight / 3,
-        paddingLeft: 20,
-        backgroundColor: "black",
-        borderTopLeftRadius: 30,
-        borderTopRightRadius: 30,
-        paddingTop: 30
+        position: "absolute",
+        bottom: 10,
+        width: "95%",
+        marginHorizontal: "5%",
     },
     backgroundVideo: {
         position: 'absolute',

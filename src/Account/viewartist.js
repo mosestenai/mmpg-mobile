@@ -58,15 +58,19 @@ const Viewartist = () => {
                         backgroundColor: Primarycolor(),
                         backgroundGradientFrom: Secondarycolor(),
                         backgroundGradientTo: Secondarycolor(),
-                        linejoinType: "bevel",
-                        decimalPlaces: 1, // optional, defaults to 2dp
-                        //color: (opacity = 255) => `rgba(0, 0, 0, ${opacity})`,
+                        // linejoinType: "bevel",
+                        decimalPlaces: 0, // optional, defaults to 2dp
+                        //color: (opacity = 255) => `rgba(0, 0, 0, ${opacity})`, 
                         color: (opacity = 255) => Primarycolor(),
                         labelColor: (opacity = 255) => "white",
                         style: {
                             borderRadius: 16,
-                            borderBottomLeftRadius: 5
+                            borderBottomLeftRadius: 5,
                         },
+                        propsForBackgroundLines: {
+                            stroke: "white",
+                        },
+                        linejoinType: "bevel",
                     }}
                     bezier
                     style={{
@@ -165,9 +169,13 @@ const Viewartist = () => {
                         width: deviceWidth
                     }}
                 /> :
-                    <TouchableOpacity
-                        style={styles.user}
-                    />}
+                    <View style={{ marginTop: 20, marginHorizontal: "5%", justifyContent: "center", alignItems: "center" }}>
+                        <View style={{ width: "16%" }} />
+                        <TouchableOpacity
+                            style={styles.user}
+                        />
+                    </View>
+                }
                 <LinearGradient
                     // Background Linear Gradient
                     colors={['rgba(0,0,0,0.8)', 'transparent']}
@@ -191,7 +199,11 @@ const Viewartist = () => {
                             <Text style={{ color: "white", marginLeft: 5 }}>{data?.totalstreams.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</Text>
                         </TouchableOpacity>
                     </View>
-                    <TouchableOpacity onPress={() => navigation.navigate("Music")} style={{ flexDirection: "row", marginTop: 25 }}>
+                    <TouchableOpacity onPress={() => navigation.navigate("Music")} style={{
+                        flexDirection: "row", marginTop: 25,
+                        position: "absolute",
+                        right: "5%"
+                    }}>
                         <Text style={{ color: "white", fontSize: 10 }}>CATALOGUE</Text>
                         <Icon name="long-arrow-alt-right" color="white" style={{ marginLeft: 5 }} />
                     </TouchableOpacity>
@@ -205,7 +217,7 @@ const Viewartist = () => {
                     style={{
                         flexDirection: "row",
                         alignSelf: "flex-end",
-                        right: 10,
+                        right: 10
 
                     }}>
                     <Text style={{ color: Primarycolor(), fontSize: 12 }}>{editby}</Text>
@@ -241,7 +253,7 @@ const Viewartist = () => {
                                 setgraphdata(data.spotifystreams)
                                 setnothing(!nothing)
                                 seteditby("Lifetime")
-                                setstreamstoshow(data.spotifystreams?.reduce((a, b) => a + b, 0))
+                                setstreamstoshow(data.spotifystreams?.reduce((a, b) => parseInt(a) + parseInt(b), 0))
                             }}
                             style={{ marginRight: 20, flexDirection: "row" }}>
                             <FontAwesome name="spotify" color={focused == 'spotify' ? Primarycolor() : "white"} size={15} style={{ marginTop: 3, marginRight: 3 }} />
@@ -253,7 +265,7 @@ const Viewartist = () => {
                                 setgraphdata(data.applestreams)
                                 setnothing(!nothing)
                                 seteditby("Lifetime")
-                                setstreamstoshow(data.applestreams?.reduce((a, b) => a + b, 0))
+                                setstreamstoshow(data.applestreams?.reduce((a, b) => parseInt(a) + parseInt(b), 0))
                             }}
                             style={{ marginRight: 0, flexDirection: "row" }}>
                             <Icon name="apple-alt" color={focused == 'apple' ? Primarycolor() : "white"} style={{ marginTop: 3, marginRight: 3 }} />
@@ -383,9 +395,9 @@ const styles = StyleSheet.create({
     },
     user: {
         backgroundColor: Secondarycolor(),
-        height: 200,
-        width: 200,
-        borderRadius: 200
+        height: 230,
+        width: 230,
+        borderRadius: 280
     }
 })
 

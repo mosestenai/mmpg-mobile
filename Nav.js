@@ -134,49 +134,49 @@ function PaymentStackScreen() {
 function HomeTabs() {
   return (
     // <View style={{position:"absolute",bottom:0,width:"100%"}}>
-      <Tab.Navigator
+    <Tab.Navigator
 
-        screenOptions={({ route }) => ({
-          tabBarIcon: ({ focused, color, size }) => {
-            let iconName;
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName;
 
-            if (route.name === 'Home') {
-              iconName = focused ? 'home' : 'home';
-            } else if (route.name === 'Account') {
-              iconName = focused ? 'user-alt' : 'user-alt';
-            } else if (route.name === 'Music') {
-              iconName = focused ? 'music' : 'music';
-            } else if (route.name === 'Payment') {
-              iconName = focused ? 'dollar-sign' : 'dollar-sign';
-            }
-            else if (route.name === 'Notification') {
-              iconName = focused ? 'bell' : 'bell';
-            }
+          if (route.name === 'Home') {
+            iconName = focused ? 'home' : 'home';
+          } else if (route.name === 'Account') {
+            iconName = focused ? 'user-alt' : 'user-alt';
+          } else if (route.name === 'Music') {
+            iconName = focused ? 'music' : 'music';
+          } else if (route.name === 'Payment') {
+            iconName = focused ? 'dollar-sign' : 'dollar-sign';
+          }
+          else if (route.name === 'Notification') {
+            iconName = focused ? 'bell' : 'bell';
+          }
 
-            // You can return any component that you like here!
-            return route.name === 'Notification' ?
-              <Image source={require("./assets/images/icon2.png")} style={{ height: 25, width: 25 }} /> :
-              <Icon name={iconName} size={20} color={color} />;
-          },
-          tabBarInactiveTintColor: 'white',
-          headerShown: false,
-          tabBarShowLabel: false,
-          tabBarHideOnKeyboard: true,
-          tabBarStyle: { backgroundColor: Viewcolor() },
-          tabBarActiveTintColor: Primarycolor()
+          // You can return any component that you like here!
+          return route.name === 'Notification' ?
+            <Image source={require("./assets/images/png/whitelogo1.png")} style={{ height: 25, width: 25 }} /> :
+            <Icon name={iconName} size={20} color={color} />;
+        },
+        tabBarInactiveTintColor: 'white',
+        headerShown: false,
+        tabBarShowLabel: false,
+        tabBarHideOnKeyboard: true,
+        tabBarStyle: { backgroundColor: Viewcolor() },
+        tabBarActiveTintColor: Primarycolor()
 
 
-        })}
+      })}
 
-      >
-        <Tab.Screen name='Home' component={HomeStackScreen} />
-        <Tab.Screen name="Account" component={AccountStackScreen} />
-        <Tab.Screen name="Music" component={MusicStackScreen} />
-        <Tab.Screen name="Payment" component={PaymentStackScreen} />
-        <Tab.Screen name="Notification" component={Redirect} />
-        
+    >
+      <Tab.Screen name='Home' component={HomeStackScreen} />
+      <Tab.Screen name="Account" component={AccountStackScreen} />
+      <Tab.Screen name="Music" component={MusicStackScreen} />
+      <Tab.Screen name="Payment" component={PaymentStackScreen} />
+      <Tab.Screen name="Notification" component={Redirect} />
 
-      </Tab.Navigator>
+
+    </Tab.Navigator>
   );
 }
 
@@ -229,7 +229,7 @@ export default function Nav() {
         // success callback which sends two things Transaction object and ResultSet Object
         (txObj, { rows: { _array } }) => {
           _array.length > 0 ? setuserexists(true) : setuserexists(false)
-          if (!_array[0]?.type) {
+          if (_array[0]?.type === 'Pending' || !_array[0]?.type) {
             settypeexists(false)
           } else {
             settypeexists(true)

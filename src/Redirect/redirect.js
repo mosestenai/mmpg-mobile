@@ -114,7 +114,7 @@ const Redirect = () => {
                     visible={true}
                     color='blue'
                     size={40}
-                    customIndicator={<BallIndicator color={Primarycolor()} />}
+                    customIndicator={<BallIndicator color={primarycolor} />}
                 />}
             {confirmpopup &&
                 <Spinner
@@ -123,10 +123,10 @@ const Redirect = () => {
                     size={30}
                     customIndicator={
                         <View style={{ backgroundColor: "white", padding: 15 }}>
-                            <Text style={{ fontWeight: "bold", color: Primarycolor() }}>Are you sure you want to cancel your membership? this action cannot be undone</Text>
+                            <Text style={{ fontWeight: "bold", color: primarycolor }}>Are you sure you want to cancel your membership? this action cannot be undone</Text>
                             <View style={{ marginTop: 10, flexDirection: "row" }}>
                                 <TouchableOpacity onPress={() => setconfirmpopup(false)} style={{
-                                    backgroundColor: Primarycolor(),
+                                    backgroundColor: primarycolor,
                                     padding: 10,
                                     borderRadius: 5,
                                     margin: 10
@@ -134,7 +134,7 @@ const Redirect = () => {
                                     <Text style={{ color: "white" }}>Cancel</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity onPress={cancelmembership} style={{
-                                    backgroundColor: Primarycolor(),
+                                    backgroundColor: primarycolor,
                                     padding: 10,
                                     borderRadius: 5,
                                     margin: 10
@@ -164,7 +164,7 @@ const Redirect = () => {
                         }}>
                             <View style={{
                                 borderWidth: 1,
-                                borderColor: Primarycolor(),
+                                borderColor: primarycolor,
                                 borderRadius: 5,
                                 padding: 10
                             }}>
@@ -186,51 +186,51 @@ const Redirect = () => {
                             </View>
                             <View style={{ marginTop: 20, width: "90%", marginHorizontal: "5%" }}>
                                 <View style={{ flexDirection: "row" }}>
-                                    <Icon name="check" color={Primarycolor()} style={{ marginTop: 5 }} />
+                                    <Icon name="check" color={primarycolor} style={{ marginTop: 5 }} />
                                     <Text style={styles.planstext}>Release Unlimited Music</Text>
                                 </View>
                                 <View style={{ flexDirection: "row" }}>
-                                    <Icon name="check" color={Primarycolor()} style={{ marginTop: 5 }} />
+                                    <Icon name="check" color={primarycolor} style={{ marginTop: 5 }} />
                                     <Text style={styles.planstext}>Copyright Protection</Text>
                                 </View>
                                 <View style={{ flexDirection: "row" }}>
-                                    <Icon name="check" color={Primarycolor()} style={{ marginTop: 5 }} />
+                                    <Icon name="check" color={primarycolor} style={{ marginTop: 5 }} />
                                     <Text style={styles.planstext}>Split Earnings with Producers</Text>
                                 </View>
                                 <View style={{ flexDirection: "row" }}>
-                                    <Icon name="check" color={Primarycolor()} style={{ marginTop: 5 }} />
+                                    <Icon name="check" color={primarycolor} style={{ marginTop: 5 }} />
                                     <Text style={styles.planstext}>Make Money From Youtube Content ID</Text>
                                 </View>
                                 <View style={{ flexDirection: "row" }}>
-                                    <Icon name="check" color={Primarycolor()} style={{ marginTop: 5 }} />
+                                    <Icon name="check" color={primarycolor} style={{ marginTop: 5 }} />
                                     <Text style={styles.planstext}>Get Your Music on Tiktok, Instagram & Facebook</Text>
                                 </View>
                                 <View style={{ flexDirection: "row" }}>
-                                    <Icon name="check" color={Primarycolor()} style={{ marginTop: 5 }} />
+                                    <Icon name="check" color={primarycolor} style={{ marginTop: 5 }} />
                                     <Text style={styles.planstext}>Custom ISRC Codes</Text>
                                 </View>
                                 <View style={{ flexDirection: "row" }}>
-                                    <Icon name="check" color={Primarycolor()} style={{ marginTop: 5 }} />
+                                    <Icon name="check" color={primarycolor} style={{ marginTop: 5 }} />
                                     <Text style={styles.planstext}>Custom Pre-Order & Release Dates</Text>
                                 </View>
                                 <View style={{ flexDirection: "row" }}>
-                                    <Icon name="check" color={Primarycolor()} style={{ marginTop: 5 }} />
+                                    <Icon name="check" color={primarycolor} style={{ marginTop: 5 }} />
                                     <Text style={styles.planstext}>Smartlink</Text>
                                 </View>
                                 <View style={{ flexDirection: "row" }}>
-                                    <Icon name="check" color={Primarycolor()} style={{ marginTop: 5 }} />
+                                    <Icon name="check" color={primarycolor} style={{ marginTop: 5 }} />
                                     <Text style={styles.planstext}>Analytic Reports</Text>
                                 </View>
                                 <View style={{ flexDirection: "row" }}>
-                                    <Icon name="check" color={Primarycolor()} style={{ marginTop: 5 }} />
+                                    <Icon name="check" color={primarycolor} style={{ marginTop: 5 }} />
                                     <Text style={styles.planstext}>Access To Funding</Text>
                                 </View>
                                 <View style={{ flexDirection: "row" }}>
-                                    <Icon name="check" color={Primarycolor()} style={{ marginTop: 5 }} />
+                                    <Icon name="check" color={primarycolor} style={{ marginTop: 5 }} />
                                     <Text style={styles.planstext}>Dedicated Client Support Team</Text>
                                 </View>
                                 <View style={{ flexDirection: "row" }}>
-                                    <Icon name="check" color={Primarycolor()} style={{ marginTop: 5 }} />
+                                    <Icon name="check" color={primarycolor} style={{ marginTop: 5 }} />
                                     <Text style={styles.planstext}>Cancel Your Membership Anytime</Text>
                                 </View>
                                 <View style={{ marginTop: 20 }}>
@@ -255,7 +255,7 @@ const Redirect = () => {
                                                 paddingVertical: 10,
                                                 borderRadius: 5
                                             }}>
-                                            <Text style={{ color: Primarycolor(), fontWeight: "bold" }}>
+                                            <Text style={{ color: primarycolor, fontWeight: "bold" }}>
                                                 Update
                                             </Text>
                                         </TouchableOpacity>
@@ -361,7 +361,7 @@ const Redirect = () => {
                                                 paddingVertical: 10,
                                                 borderRadius: 5
                                             }}>
-                                            <Text style={{ color: Primarycolor(), fontWeight: "bold" }}>
+                                            <Text style={{ color: primarycolor, fontWeight: "bold" }}>
                                                 Update
                                             </Text>
                                         </TouchableOpacity>
@@ -414,12 +414,7 @@ const Redirect = () => {
                     </View>
                 </View>}
             </ScrollView>
-            <View style={styles.bottomCenter}>
-                <TouchableOpacity onPress={() => navigation.navigate("Home")}>
-                    <FontAwesome5 name="home" color={"white"} size={20} />
-                </TouchableOpacity>
-
-            </View>
+           
         </SafeAreaView>
     );
 }
@@ -436,7 +431,7 @@ const styles = StyleSheet.create({
         // justifyContent: "center"
     },
     planstext: {
-        color: "gray",
+        color: "white",
         marginLeft: 10,
         fontWeight: "100",
         fontSize: 10,

@@ -143,10 +143,16 @@ const Viewmusic = () => {
 
                 />}
             <View style={styles.fixedview}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={{ width: "10%" }}>
+                <TouchableOpacity onPress={() => navigation.goBack()} 
+                style={{ 
+                    width: "10%",
+                    position:"absolute" ,
+                    top:5,
+                    left:10
+                    }}>
                     <FontAwesome5 name="angle-left" color={"white"} size={25} />
                 </TouchableOpacity>
-                <View style={{ width: "80%" }}>
+                <View style={{ width: "100%" }}>
                     <Text style={{ alignSelf: "center", color: "white" }}>{route.params.artist}/{route.params.title}</Text>
                 </View>
 
@@ -183,7 +189,7 @@ const Viewmusic = () => {
                         <TouchableOpacity style={styles.buttonshare} onPress={copyToClipboard}>
                             <Ionicons name={"copy-outline"} color={"white"} size={25} />
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.buttonshare} onPress={openlink}>
+                        <TouchableOpacity style={styles.buttonshare2} onPress={openlink}>
                             <Fontisto name="world-o" color={"white"} size={25} />
                         </TouchableOpacity>
                     </View>
@@ -226,6 +232,7 @@ const styles = StyleSheet.create({
         borderTopLeftRadius: 5,
         height: 60,
         paddingTop: 15,
+        width:"100%",
         flexDirection: "row",
         position: "absolute",
         bottom: 0
@@ -236,9 +243,18 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderRadius: 5,
         borderColor: "white",
-        width: "30%",
+        width: "32%",
         height: 45,
         marginRight: 5
+    },
+    buttonshare2: {
+        justifyContent: "center",
+        alignItems: "center",
+        borderWidth: 1,
+        borderRadius: 5,
+        borderColor: "white",
+        width: "32%",
+        height: 45
     },
     sharemusictext: {
         color: "white",

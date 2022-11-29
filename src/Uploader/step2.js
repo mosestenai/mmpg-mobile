@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, SafeAreaView, ScrollView, StyleSheet, TouchableOpacity, Dimensions, TextInput, Image, Alert } from "react-native";
 import { Primarycolor, Secondarycolor, Semisecondarycolor } from "../Utils/color";
 import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
@@ -10,6 +10,8 @@ import { MaterialCommunityIcons } from "../Components/materialcommunity";
 import * as SQLite from 'expo-sqlite';
 import { UserProps } from "victory-core";
 import { Getuserdetails } from "../Utils/getuserdetails";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Getsavedsongs } from "../Utils/getsavedsongs";
 
 const db = SQLite.openDatabase('db.Userdbs') // returns Database object
 
@@ -18,13 +20,36 @@ var deviceheight = Dimensions.get('window').height;
 
 
 const Step2 = () => {
-
+    const savedsongs = Getsavedsongs()
     const navigation = useNavigation();
     const route = useRoute();
     const [audios, setaudios] = useState([]);
     const [showaudios, setshowaudios] = useState(false);
     const [nothing, setnothing] = useState(false);
     const user = Getuserdetails();
+
+
+    useEffect(() => {
+        const checkdraft = async () => {
+            try {
+                const value = await AsyncStorage.getItem('songssaved')
+                if (value !== null) {
+                    const gh = JSON.parse(value);
+                    gh?.forEach(element => {
+                        if (element.releasetitle === route?.params?.releasetitle && element.audiofile) {
+                            setaudios(element.audiofile)
+                            setshowaudios(!showaudios)
+                        }
+                    });
+                }
+            } catch (e) {
+                console.log(e)
+            }
+        }
+        checkdraft()
+
+    }, []);
+
 
 
     const pickDocument = async () => {
@@ -101,50 +126,41 @@ const Step2 = () => {
 
     }
 
+
     const saveforlater = () => {
-        db.transaction(tx => {
+        if (!audios) {
+            Alert.alert(
+                "Error",
+                'No data to be saved',
+                [
+                    { text: "OK" }
+                ]
+            );
+        } else {
+            let obj = {
+                releasetitle: route.params.releasetitle,
+                coverimage: route.params.coverimage,
+                audiofile: audios
+            };
+            const gh = [];
+            savedsongs.forEach(element => {
+                if (element.releasetitle !== route.params.releasetitle) {
+                    gh.push(element)
+                }
+            });
+            gh.push(obj)
 
-            tx.executeSql('INSERT INTO Tracks (title,imgurl) values (?,?)', [route.params.releasetitle, route.params.coverimage.uri],
-                (txObj, resultSet) => {
-                    Alert.alert(
-                        "Success",
-                        'Saved successfully',
-                        [
-                            { text: "OK" }
-                        ]
-                    );
-                    setTimeout(() => {
-                        navigation.navigate("Home")
-                    }, 3000);
-                },
-                (txObj, error) => {
-                    Alert.alert(
-                        "Error",
-                        error + 'Contact admin',
-                        [
-                            { text: "OK" }
-                        ]
-                    );
-                })
-        }) // end transaction
-
+            AsyncStorage.setItem("songssaved", JSON.stringify(gh));
+            Alert.alert(
+                "Success",
+                'Saved successfully',
+                [
+                    { text: "OK" }
+                ]
+            );
+            navigation.navigate("Home")
+        }
     }
-
-    // const checkstatus = () =>{
-
-    //     if(user.type === 'Artist' && audios.length > 0){
-    //         Alert.alert(
-    //             "Error",
-    //             'Upgrade membership to upload more tracks',
-    //             [
-    //                 { text: "OK" }
-    //             ]
-    //         );
-    //     }else{
-    //         pickDocument()
-    //     }
-    // }
-
 
     return (
         <SafeAreaView style={{ height: deviceheight, backgroundColor: "black" }}>
@@ -180,7 +196,7 @@ const Step2 = () => {
                         <Text style={{ color: "white", position: "absolute", right: 0, fontSize: 13 }}>33%</Text>
                     </View>
                     <View style={{ marginTop: 10 }}>
-                        <TouchableOpacity style={styles.browse2button} onPress={ pickDocument}>
+                        <TouchableOpacity style={styles.browse2button} onPress={pickDocument}>
                             <FontAwesome5 name={"plus"} color={"white"} style={{ marginRight: 5, marginLeft: 5, marginTop: 2 }} />
                             <Text style={{ color: "white", fontSize: 12 }}>BROWSE TRACKS</Text>
                         </TouchableOpacity>
@@ -193,7 +209,6 @@ const Step2 = () => {
                     {showaudios ?
                         <View style={styles.audiosview}>
                             {audios.map((val, key) => {
-
 
                                 return (
                                     <View style={styles.audioview} key={key}>
@@ -306,8 +321,8 @@ const styles = StyleSheet.create({
     nextbutton: {
         backgroundColor: Primarycolor(),
         width: 100,
-        justifyContent:"center",
-        alignItems:"center",
+        justifyContent: "center",
+        alignItems: "center",
         top: 10,
         paddingVertical: 5,
         borderRadius: 5,
@@ -315,8 +330,8 @@ const styles = StyleSheet.create({
     previousbutton: {
         backgroundColor: Primarycolor(),
         width: 100,
-        justifyContent:"center",
-        alignItems:"center",
+        justifyContent: "center",
+        alignItems: "center",
         top: 10,
         paddingVertical: 5,
         borderRadius: 5,

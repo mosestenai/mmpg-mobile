@@ -237,9 +237,6 @@ const Catalogue = () => {
             }>
                 <View style={{ paddingBottom: 100 }}>
                     {sortedsongs.map((val, key) => {
-
-
-
                         return (
                             val.status === 'APPROVED' ?
                                 <View style={styles.trackview} key={key}>
@@ -276,7 +273,7 @@ const Catalogue = () => {
                                         <Text style={{ marginTop: 10, color: "gray" }}>{val.title}/{val.artist}</Text>
                                     </View>
 
-                                    <View>
+                                    <View >
                                         <View>
                                             <Text style={{ fontSize: 20, color: "white", fontWeight: "bold" }}>{val.date.substring(0, 4)}</Text>
                                             <Text style={{ alignSelf: "flex-end", color: "gray", fontSize: 10 }}>{val.date.substring(8, 10)} {
@@ -399,7 +396,8 @@ const styles = StyleSheet.create({
         paddingVertical: 5
     },
     coverdetails: {
-        marginLeft: 10
+        marginLeft: 10,
+        paddingTop:30
     },
     coverimage: {
         backgroundColor: "gray",

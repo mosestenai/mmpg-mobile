@@ -23,7 +23,7 @@ const Logout = () => {
         db.transaction(tx => {
             // sending 4 arguments in executeSql
             tx.executeSql('UPDATE User set type=? where email=?',
-                ["", user.email], // passing sql query and parameters:null
+                ["Pending", user.email], // passing sql query and parameters:null
                 // success callback which sends two things Transaction object and ResultSet Object
                 (tx, results) => {
                     if (results.rowsAffected > 0) {

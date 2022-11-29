@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { View, StyleSheet, KeyboardAvoidingView, Text, StatusBar, Image, ScrollView, Dimensions, TouchableOpacity, TextInput, ImageBackground, Linking } from 'react-native';
 import { Video, AVPlaybackStatus } from 'expo-av';
 import Icon from '@expo/vector-icons/FontAwesome';
@@ -8,11 +8,14 @@ import { images } from './assetsurls';
 import { sendEmail } from './sendmail';
 import { useNavigation } from '@react-navigation/native';
 import { Getuserdetails } from './../Utils/getuserdetails';
-import { Submitplanuserurl, Makebespokerequesturl } from "./../Utils/urls"
+import { Submitplanuserurl, Makebespokerequesturl, checkpaymentstatusurl } from "./../Utils/urls"
 import axios from 'axios';
 import * as SQLite from 'expo-sqlite';
 import Swiper from 'react-native-swiper'
 import * as WebBrowser from 'expo-web-browser';
+import { FontAwesome5 } from '../Components/fontawesome5';
+import Spinner from 'react-native-loading-spinner-overlay/lib';
+import useInterval from 'use-interval'
 
 const db = SQLite.openDatabase('db.Userdbs') // returns Database object
 
@@ -28,9 +31,10 @@ const Membershipplans = () => {
 
     const url = images.getstartedvideo.uri;
     const navigation = useNavigation();
-    const user = Getuserdetails();
+    const [user, setuser] = useState('');
     const [error, seterror] = useState('');
     const [success, setsuccess] = useState('');
+    const [progress, setprogress] = useState(true);
 
     const scrollViewRef = useRef();
     const viewref = useRef();
@@ -42,18 +46,48 @@ const Membershipplans = () => {
 
     const image = require('./../../assets/images/member.png')
 
-    //send email for bespoke plan
-    const send = () => {
 
-        sendEmail(
-            'admin@mmpg.com',
-            'Bespoke plan request',
-            'Requesting to get bespoke plan ',
-            { cc: 'admin@mmpg.com; info@mmpg.com;' }
-        ).then(() => {
-            console.log('Your message was successfully sent!');
+    useEffect(() => {
+        db.transaction(tx => {
+            // sending 4 arguments in executeSql
+            tx.executeSql('SELECT * FROM User', null, // passing sql query and parameters:null
+                // success callback which sends two things Transaction object and ResultSet Object
+                (txObj, { rows: { _array } }) => {
+                    checkpayment(_array[0].token)
+                    setuser(_array[0])
+                },
+                (txObj, error) => console.log('Error ', error)
+            ) // end executeSQL
+        }) // end transaction
+    }, []);
+    
+    
+    //check payment periodically
+    const checkpayment = (e) => {
+        axios.post(checkpaymentstatusurl, {
+            token: e,
+            status: "true"
+        }).then(function (response) {
+            setprogress(false)
+            if (!response.data.message) {
+                if (response.data.expires.length > 3) {
+                    navigation.replace("default")
+                }
+            } else {
+
+            }
+            // 
+        }).catch(function (error) {
+            setprogress(false)
+            //if(error.response.status === 401 || error.response.status === 400){}
+
         });
     }
+
+    useInterval(() => {
+        checkpayment(user.token);
+    }, 10000);
+
 
     const Makerequest = (e) => {
         // console.log(bespoke)
@@ -66,7 +100,7 @@ const Membershipplans = () => {
             if (!response.data.message) {
                 if (response.data.success) {
                     setsuccess(response.data.success)
-                    chooseplan('Label',e)
+                    // chooseplan('Label', e)
                 } else {
                     seterror("There was an internal error contact admin")
                 }
@@ -75,6 +109,7 @@ const Membershipplans = () => {
             }
             // 
         }).catch(function (error) {
+            console.log(error)
             setloading(false)
             seterror("Sorry an error occurred,try again later");
             //if(error.response.status === 401 || error.response.status === 400){}
@@ -83,49 +118,51 @@ const Membershipplans = () => {
 
     }
 
-    const chooseplan = (e,z) => {
-        setloading(true)
+    const chooseplan = (e, z) => {
         seterror(null)
-        axios.post(Submitplanuserurl, {
-            token: user.token,
-            plan: e
-        }).then(function (response) {
-            setloading(false)
-            if (!response.data.message) {
-                if (response.data.success) {
-                    db.transaction(tx => {
-                        // sending 4 arguments in executeSql
-                        tx.executeSql('UPDATE User set type=? where email=?',
-                            [e, user.email], // passing sql query and parameters:null
-                            // success callback which sends two things Transaction object and ResultSet Object
-                            (tx, results) => {
-                                if (results.rowsAffected > 0) {
-                                    navigation.replace("default")
-                                    //open link
-                                    if(!z){
-                                        openlink('https://mmpg.eazistey.co.ke/' + user.token + '/' + e)
-                                    }
-                                } else {
-                                    seterror("Internal app error.contact admin")
-                                }
-                            },
-                            (txObj, error) => console.log('Error ', error)
-                        ) // end executeSQL
-                    }) // end transaction
-                } else {
-                    seterror("There was an internal error contact admin")
-                }
-            } else {
-                seterror(response.data.message)
-            }
-            // 
-        }).catch(function (error) {
+        if (!z) {//if package chosen is not bespoke,,open paypal
+            openlink('https://mmpg.eazistey.co.ke/' + user.token + '/' + e)
+        }
+        // axios.post(Submitplanuserurl, {
+        //     token: user.token,
+        //     plan: e
+        // }).then(function (response) {
+        //     setloading(false)
+        //     if (!response.data.message) {
+        //         if (response.data.success) {
+        //             db.transaction(tx => {
+        //                 // sending 4 arguments in executeSql
+        //                 tx.executeSql('UPDATE User set type=? where email=?',
+        //                     [e, user.email], // passing sql query and parameters:null
+        //                     // success callback which sends two things Transaction object and ResultSet Object
+        //                     (tx, results) => {
+        //                         if (results.rowsAffected > 0) {
+        //                             // navigation.replace("default")
+        //                             //open link
+        //                             if (!z) {
+        //                                 openlink('https://mmpg.eazistey.co.ke/' + user.token + '/' + e)
+        //                             }
+        //                         } else {
+        //                             seterror("Internal app error.contact admin")
+        //                         }
+        //                     },
+        //                     (txObj, error) => console.log('Error ', error)
+        //                 ) // end executeSQL
+        //             }) // end transaction
+        //         } else {
+        //             seterror("There was an internal error contact admin")
+        //         }
+        //     } else {
+        //         seterror(response.data.message)
+        //     }
+        //     // 
+        // }).catch(function (error) {
 
-            setloading(false)
-            seterror("Sorry an error occurred,try again later");
-            //if(error.response.status === 401 || error.response.status === 400){}
+        //     setloading(false)
+        //     seterror("Sorry an error occurred,try again later");
+        //     //if(error.response.status === 401 || error.response.status === 400){}
 
-        });
+        // });
     }
 
     const openlink = async (e) => {
@@ -135,10 +172,26 @@ const Membershipplans = () => {
     }
 
 
-
     return (
         <View style={styles.container}>
+            {progress &&
+                <Spinner
+                    visible={true}
+                    color='blue'
+                    size={40}
+                    customIndicator={<BallIndicator color={Primarycolor()} />}
+                />}
+
             <ImageBackground source={image} resizeMode="cover" style={styles.image}>
+                <TouchableOpacity onPress={() => navigation.goBack()}
+                    style={{
+                        position: "absolute",
+                        left: 5,
+                        zIndex: 5,
+                        width: "10%"
+                    }}>
+                    <FontAwesome5 name="angle-left" color={"white"} size={25} />
+                </TouchableOpacity>
                 <Swiper showsButtons={false} loop={false}
                     activeDotStyle={{
                         backgroundColor: "white",
@@ -249,14 +302,7 @@ const Membershipplans = () => {
                                 </View>
                             </View>
                         </View>
-                        <View style={styles.bottomCenter}>
-                            <View style={{ flexDirection: "row", marginTop: 7, justifyContent: "center", alignItems: "center" }}>
-                                <Text style={{ color: "gray", fontSize: 7 }}>By creating an account i agree to the </Text>
-                                <TouchableOpacity><Text style={{ color: "white", fontSize: 7 }}>Terms & Conditions </Text></TouchableOpacity>
-                                <Text style={{ color: "gray", fontSize: 7 }}>and</Text>
-                                <TouchableOpacity><Text style={{ color: "white", fontSize: 7 }}> Privacy Policy </Text></TouchableOpacity>
-                            </View>
-                        </View>
+
                     </View>
                     <View style={styles.loginContainer}>
                         <View style={{
@@ -271,7 +317,7 @@ const Membershipplans = () => {
                                 borderRadius: 5,
                                 padding: 10
                             }}>
-                                <View style={{ position: "absolute", justifyContent: "center", alignItems: "center", right: 10,marginTop:10 }}>
+                                <View style={{ position: "absolute", justifyContent: "center", alignItems: "center", right: 10, marginTop: 10 }}>
                                     <Text style={{ color: "white", fontSize: 10 }}> Most Popular</Text>
                                     <Icon name="star" color="orange" size={15} />
                                 </View>
@@ -362,14 +408,7 @@ const Membershipplans = () => {
                                 </View>
                             </View>
                         </View>
-                        <View style={styles.bottomCenter}>
-                            <View style={{ flexDirection: "row", marginTop: 7, justifyContent: "center", alignItems: "center" }}>
-                                <Text style={{ color: "gray", fontSize: 7 }}>By creating an account i agree to the </Text>
-                                <TouchableOpacity><Text style={{ color: "white", fontSize: 7 }}>Terms & Conditions </Text></TouchableOpacity>
-                                <Text style={{ color: "gray", fontSize: 7 }}>and</Text>
-                                <TouchableOpacity><Text style={{ color: "white", fontSize: 7 }}> Privacy Policy </Text></TouchableOpacity>
-                            </View>
-                        </View>
+
                     </View>
 
                     <View style={styles.loginContainer}>
@@ -413,7 +452,7 @@ const Membershipplans = () => {
                                 {error ? <Text style={{ fontSize: 10, color: "red" }}>{error}</Text> : null}
                                 {success ? <Text style={{ fontSize: 10, color: "green" }}>{success}</Text> : null}
                                 <TouchableOpacity
-                                    onPress={()=>{
+                                    onPress={() => {
                                         Makerequest("Bespoke")
                                     }}
                                     style={{
@@ -426,22 +465,29 @@ const Membershipplans = () => {
                                         paddingHorizontal: 10,
                                         height: 40
                                     }}>
-                                        {loading ? <BallIndicator color='white' size={10} /> : <Text style={{ color: "white", fontWeight: "bold" }}>
+                                    {loading ? <BallIndicator color='white' size={10} /> : <Text style={{ color: "white", fontWeight: "bold" }}>
                                         Contact Us
-                                        </Text>}
+                                    </Text>}
                                 </TouchableOpacity>
                             </View>
                         </View>
-                        <View style={styles.bottomCenter}>
-                            <View style={{ flexDirection: "row", marginTop: 7, justifyContent: "center", alignItems: "center" }}>
-                                <Text style={{ color: "gray", fontSize: 7 }}>By creating an account i agree to the </Text>
-                                <TouchableOpacity><Text style={{ color: "white", fontSize: 7 }}>Terms & Conditions </Text></TouchableOpacity>
-                                <Text style={{ color: "gray", fontSize: 7 }}>and</Text>
-                                <TouchableOpacity><Text style={{ color: "white", fontSize: 7 }}> Privacy Policy </Text></TouchableOpacity>
-                            </View>
-                        </View>
+
                     </View>
                 </Swiper>
+                <View style={{
+                    position: "absolute",
+                    bottom: 10,
+                    width: "100%",
+                    justifyContent: "center",
+                    alignItems: "center"
+                }}>
+                    <View style={{ flexDirection: "row", marginTop: 7, justifyContent: "center", alignItems: "center" }}>
+                        <Text style={{ color: "gray", fontSize: 7 }}>By creating an account i agree to the </Text>
+                        <TouchableOpacity onPress={() => openlink("https://www.mmpgmusic.com/terms")} ><Text style={{ color: "white", fontSize: 7 }}>Terms & Conditions </Text></TouchableOpacity>
+                        <Text style={{ color: "gray", fontSize: 7 }}>and</Text>
+                        <TouchableOpacity onPress={() => openlink("https://www.mmpgmusic.com/terms")}><Text style={{ color: "white", fontSize: 7 }}> Privacy Policy </Text></TouchableOpacity>
+                    </View>
+                </View>
             </ImageBackground>
         </View>
     );

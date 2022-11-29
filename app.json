@@ -1,13 +1,13 @@
 {
   "expo": {
-    "name": "mmpg",
-    "slug": "mmpg",
+    "name": "MMPG",
+    "slug": "MMPG",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/gif/icon2.png",
+    "icon": "./assets/gif/icon3.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/icon6.png",
+      "image": "./assets/images/png/splash3.png",
       "resizeMode": "contain",
       "backgroundColor": "#00ace9"
     },
@@ -22,10 +22,10 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/gif/icon2.png",
+        "foregroundImage": "./assets/gif/icon3.png",
         "backgroundColor": "#000000"
       },
-      "package": "com.tenai.mmpg"
+      "package": "com.mmpgmusic.mmpg"
     },
     "web": {
       "favicon": "./assets/favicon.png"

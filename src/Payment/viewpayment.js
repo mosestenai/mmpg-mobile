@@ -22,6 +22,29 @@ const db = SQLite.openDatabase('db.Userdbs') // returns Database object
 var deviceHeight = Dimensions.get('window').height
 var deviceWidth = Dimensions.get('window').width
 
+const locationn = [
+    {
+        country: "Australia",
+        marks: 0
+    },
+    {
+        country: "Uk",
+        marks: 0
+    },
+    {
+        country: "Canada",
+        marks: 0
+    },
+    {
+        country: "USA",
+        marks: 0
+    },
+    {
+        country: "Europe",
+        marks: 0
+    }
+];
+
 
 const Viewpayment = () => {
 
@@ -36,6 +59,8 @@ const Viewpayment = () => {
     const [graphdata, setgraphdata] = useState([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
     const [screendata, setscreendata] = useState('');
     const [defaultid, setdefaultid] = useState(12);
+    const [locationnames, setlocationnames] = useState([]);
+    const [testarray, settestarray] = useState([]);
     const [defaultsort, setdefaultsort] = useState({
         month: "All",
         id: 12
@@ -83,6 +108,40 @@ const Viewpayment = () => {
             setloading(false)
             if (!response.data.message) {
                 setsongs(response.data)
+                const get = () => {
+                    var gh = [];
+                    response.data.forEach(element => {
+                        gh.push(element.locationnamer)
+                    });
+                    return gh;
+                }
+
+                get().forEach(element => {
+                    var index0 = locationn.findIndex(obj => obj?.country == element[0]);
+                    if (index0 > -1) {
+                        locationn[index0].marks = parseInt(locationn[index0].marks) + 5;
+                    }
+                    var index1 = locationn.findIndex(obj => obj?.country == element[1]);
+                    if (index1 > -1) {
+                        locationn[index1].marks = parseInt(locationn[index1].marks) + 4;
+                    }
+                    var index2 = locationn.findIndex(obj => obj?.country == element[2]);
+                    if (index2 > -1) {
+                        locationn[index2].marks = parseInt(locationn[index2].marks) + 3;
+                    }
+                    var index3 = locationn.findIndex(obj => obj?.country == element[3]);
+                    if (index3 > -1) {
+                        locationn[index3].marks = parseInt(locationn[index3].marks) + 2;
+                    }
+                    var index4 = locationn.findIndex(obj => obj?.country == element[4]);
+                    if (index4 > -1) {
+                        locationn[index4].marks = parseInt(locationn[index4].marks) + 1;
+                    }
+                });
+
+                setlocationnames(locationn.sort(function (a, b) { return parseInt(a.marks) - parseInt(b.marks); }))
+
+                // setlocationnames(response.data[0].locationnames)
             } else {
                 Alert.alert(
                     "Error",
@@ -106,6 +165,8 @@ const Viewpayment = () => {
 
         });
     }
+
+
 
     // console.log(graphdata)
 
@@ -173,14 +234,14 @@ const Viewpayment = () => {
                 //     return parseInt(x, 10);
                 // });
                 // var gh = result.reduce((partialSum, a) => partialSum + a,);
-                setsumlocations(response.data.locationroyalty)
+                setsumlocations(response.data?.locationroyalty)
                 setlabeldata(response.data)
                 setgraphdata(response.data.royaltyhistory)
-                setaustralia(response.data.locationroyalty[0])
-                seteurope(response.data.locationroyalty[1])
-                setcanada(response.data.locationroyalty[2])
-                setuk(response.data.locationroyalty[3])
-                setus(response.data.locationroyalty[4])
+                setaustralia(Array.isArray(response.data?.locationroyalty) && response.data?.locationroyalty[0])
+                seteurope(Array.isArray(response.data?.locationroyalty) && response.data?.locationroyalty[1])
+                setcanada(Array.isArray(response.data?.locationroyalty) && response.data?.locationroyalty[2])
+                setuk(Array.isArray(response.data?.locationroyalty) && response.data?.locationroyalty[3])
+                setus(Array.isArray(response.data?.locationroyalty) && response.data?.locationroyalty[4])
                 setscreendata(response.data)
 
             } else {
@@ -194,6 +255,7 @@ const Viewpayment = () => {
             }
             // 
         }).catch(function (error) {
+
             setloading(false)
             //if(error.response.status === 401 || error.response.status === 400){}
             Alert.alert(
@@ -236,7 +298,7 @@ const Viewpayment = () => {
                         backgroundGradientTo: Secondarycolor(),
                         // linejoinType: "bevel",
                         decimalPlaces: 0, // optional, defaults to 2dp
-                        //color: (opacity = 255) => `rgba(0, 0, 0, ${opacity})`,
+                        //color: (opacity = 255) => `rgba(0, 0, 0, ${opacity})`, 
                         color: (opacity = 255) => Primarycolor(),
                         labelColor: (opacity = 255) => "white",
                         style: {
@@ -247,10 +309,6 @@ const Viewpayment = () => {
                             stroke: "white",
                         },
                         linejoinType: "bevel",
-
-
-
-
                     }}
                     bezier
                     style={{
@@ -284,6 +342,15 @@ const Viewpayment = () => {
     // });
 
 
+
+
+
+
+
+
+
+
+
     //calculate whole value to be under 10
     const calculate = (val, all) => {
         var result = all?.map(function (x) {
@@ -305,15 +372,39 @@ const Viewpayment = () => {
     }
 
     const locationarray = [
-        { x: `Australia(${calculate2(australia, sumlocations)}%)`, y: calculate(australia, sumlocations) },
-        { x: `Europe(${calculate2(europe, sumlocations)}%)`, y: calculate(europe, sumlocations) },
-        { x: `Canada(${calculate2(canada, sumlocations)}%)`, y: calculate(canada, sumlocations) },
-        { x: `Uk(${calculate2(uk, sumlocations)}%)`, y: calculate(uk, sumlocations) },
-        { x: `USA(${calculate2(us, sumlocations)}%)`, y: calculate(us, sumlocations) }
+        { x: `(${calculate2(australia, sumlocations)}%)`, y: calculate(australia, sumlocations) },
+        { x: `(${calculate2(europe, sumlocations)}%)`, y: calculate(europe, sumlocations) },
+        { x: `(${calculate2(canada, sumlocations)}%)`, y: calculate(canada, sumlocations) },
+        { x: `(${calculate2(uk, sumlocations)}%)`, y: calculate(uk, sumlocations) },
+        { x: `(${calculate2(us, sumlocations)}%)`, y: calculate(us, sumlocations) }
     ]
-    const finallocationarray = locationarray.sort(function (a, b) {
+
+    const finallocation = locationarray.sort(function (a, b) {
         return parseFloat(a.y) - parseFloat(b.y);
     });
+
+    const finallocationarray = [
+        {
+            x: locationnames[0]?.country + finallocation[0]?.x,
+            y: finallocation[0]?.x
+        },
+        {
+            x: locationnames[1]?.country + finallocation[1]?.x,
+            y: finallocation[1]?.x
+        },
+        {
+            x: locationnames[2]?.country + finallocation[2]?.x,
+            y: finallocation[2]?.x
+        },
+        {
+            x: locationnames[3]?.country + finallocation[3]?.x,
+            y: finallocation[3]?.x
+        },
+        {
+            x: locationnames[4]?.country + finallocation[4]?.x,
+            y: finallocation[4]?.x
+        },
+    ]
 
 
 
@@ -457,10 +548,19 @@ const Viewpayment = () => {
                 <Text style={{ color: "gray" }}>
                     {defaultid === 12 ? year : defaultsort?.month}
                 </Text>
-                <TouchableOpacity style={styles.calenderview} onPress={() => {graphdata?.length > 0  && setshowcalender(true) }}>
+                <TouchableOpacity style={styles.calenderview} onPress={() => { graphdata?.length > 0 && setshowcalender(true) }}>
                     <MaterialCommunityIcons name="calendar" color={"gray"} size={25} />
                 </TouchableOpacity>
             </View>
+            {songs.length < 1?
+            <View style={{
+                height:deviceHeight,
+                flex:1,
+                alignItems:"center",
+                justifyContent:"center"
+            }}>
+                <Text style={{color:"white"}}>No data available</Text>
+            </View>:
             <ScrollView refreshControl={
                 <RefreshControl
                     refreshing={refreshing}
@@ -480,7 +580,7 @@ const Viewpayment = () => {
                                 fontSize: 25,
                                 color: "white"
                             }}>
-                                {screendata?.totalroyalty?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                                {screendata?.totalroyalty ? screendata?.totalroyalty?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : 0.00}
                                 {/* {user?.type === 'Artist' ? artists[0]?.totalroyalty.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : labeldata?.totalroyalty?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")} */}
                             </Text>
                         </View>
@@ -501,13 +601,14 @@ const Viewpayment = () => {
                             <TouchableOpacity style={{ marginLeft: 5 }}>
                                 <Text style={{ color: Primarycolor(), fontSize: 10 }}>-{screendata?.amountpaid}</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={styles.redirectbtn} onPress={() => navigation.navigate('authentication', { screen: 'paymentdetails', params: { songs: songs } })}>
-                                <FontAwesome5 name="arrow-circle-right" color="white" size={15} />
-                            </TouchableOpacity>
+                            {!loading && artists[0] ?
+                                <TouchableOpacity style={styles.redirectbtn} onPress={() => navigation.navigate('authentication', { screen: 'paymentdetails', params: { songs: songs } })}>
+                                    <FontAwesome5 name="arrow-circle-right" color="white" size={15} />
+                                </TouchableOpacity> : null}
                         </View>
                     </View>
                     <View style={{ marginTop: 20, backgroundColor: Secondarycolor(), marginHorizontal: "3%", borderRadius: 10 }}>
-                        <View style={{
+                        {!loading && artists[0]?.royaltyhistory && <View style={{
                             position: "absolute",
                             right: 20,
                             zIndex: 1,
@@ -524,7 +625,7 @@ const Viewpayment = () => {
                                 {defaultid === 12 ? screendata?.totalroyalty?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : graphdata[defaultid]}
                                 {/* {user?.type === 'Artist' ? artists[0]?.totalroyalty.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : labeldata?.totalroyalty?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")} */}
                             </Text>
-                        </View>
+                        </View>}
                         <Text style={{ color: "gray", fontSize: 10, marginLeft: 10, marginTop: 10 }}>Royalty History</Text>
                         {!loading && artists[0]?.royaltyhistory && <MyBezierLineChart />}
                         <View style={{ alignSelf: "center", flexDirection: "row" }}>
@@ -731,7 +832,7 @@ const Viewpayment = () => {
 
                 </View>
 
-            </ScrollView>
+            </ScrollView>}
         </SafeAreaView>
     )
 }

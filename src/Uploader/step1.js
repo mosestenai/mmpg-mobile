@@ -8,6 +8,7 @@ import { FontAwesome5 } from "../Components/fontawesome5";
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system'
 import * as SQLite from 'expo-sqlite';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const db = SQLite.openDatabase('db.Userdbs') // returns Database object
 
@@ -31,10 +32,10 @@ const Step1 = () => {
     const navigation = useNavigation();
     const route = useRoute();
     const [screendata, setscreendata] = useState(route?.params?.data);
-    const [releasetitle, setreleasetitle] = useState(screendata?.title);
+    const [releasetitle, setreleasetitle] = useState(screendata?.releasetitle);
     const [error, seterror] = useState('');
-    const [cover, setcover] = useState(null);
-    const [url, seturl] = useState(screendata?.url || screendata?.imgurl);
+    const [cover, setcover] = useState(screendata?.coverimage);
+    const [url, seturl] = useState(screendata?.url || screendata?.coverimage.uri);
 
 
     const pickImage = async () => {
@@ -107,6 +108,7 @@ const Step1 = () => {
         }
     };
 
+
     const checkfields = () => {
         if (!releasetitle) {
             Alert.alert(
@@ -134,31 +136,55 @@ const Step1 = () => {
     }
 
     const saveforlater = () => {
-        db.transaction(tx => {
+        if (!releasetitle || !cover) {
+            Alert.alert(
+                "Error",
+                'No data to be saved',
+                [
+                    { text: "OK" }
+                ]
+            );
+        } else {
+            let obj = [{
+                releasetitle: releasetitle,
+                coverimage: cover,
+            }];
+            AsyncStorage.setItem("songssaved", JSON.stringify(obj));
+            Alert.alert(
+                "Success",
+                'Saved successfully',
+                [
+                    { text: "OK" }
+                ]
+            );
+            navigation.navigate("Home")
 
-            tx.executeSql('INSERT INTO Tracks (title,imgurl) values (?,?)', [releasetitle, url],
-                (txObj, resultSet) => {
-                    Alert.alert(
-                        "Success",
-                        'Saved successfully',
-                        [
-                            { text: "OK" }
-                        ]
-                    );
-                    setTimeout(() => {
-                        navigation.navigate("Home")
-                    }, 3000);
-                },
-                (txObj, error) => {
-                    Alert.alert(
-                        "Error",
-                        error + 'Contact admin',
-                        [
-                            { text: "OK" }
-                        ]
-                    );
-                })
-        }) // end transaction
+            // db.transaction(tx => {
+
+            //     tx.executeSql('INSERT INTO Tracks (title,imgurl) values (?,?)', [releasetitle, url],
+            //         (txObj, resultSet) => {
+            //             Alert.alert(
+            //                 "Success",
+            //                 'Saved successfully',
+            //                 [
+            //                     { text: "OK" }
+            //                 ]
+            //             );
+            //             setTimeout(() => {
+            //                 navigation.navigate("Home")
+            //             }, 3000);
+            //         },
+            //         (txObj, error) => {
+            //             Alert.alert(
+            //                 "Error",
+            //                 error + 'Contact admin',
+            //                 [
+            //                     { text: "OK" }
+            //                 ]
+            //             );
+            //         })
+            // }) // end transaction
+        }
 
     }
 

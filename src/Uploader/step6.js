@@ -8,11 +8,14 @@ import { FontAwesome5 } from "../Components/fontawesome5";
 import { Calendar, CalendarList, Agenda } from 'react-native-calendars';
 import { BallIndicator } from "react-native-indicators";
 import { FontAwesome } from "../Components/fontawesome";
+import { Fontisto } from "@expo/vector-icons";
 import Checkbox from 'expo-checkbox';
 import axios from "axios";
 import { Postsongurl, Uploadreleasecoverimageurl, Uploadsongurl } from "../Utils/urls";
 import { Getuserdetails } from "../Utils/getuserdetails";
 import * as SQLite from 'expo-sqlite';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Getsavedsongs } from "../Utils/getsavedsongs";
 
 const db = SQLite.openDatabase('db.Userdbs') // returns Database object
 //import { Calendar } from 'react-native-plain-calendar';
@@ -23,6 +26,7 @@ var deviceheight = Dimensions.get('window').height;
 
 
 const Step6 = () => {
+    const savedsongs = Getsavedsongs()
     const navigation = useNavigation();
     const [isSelected, setSelection] = useState(false);
     const [selected2, setselected2] = useState(false);
@@ -42,23 +46,21 @@ const Step6 = () => {
     const audioslength = route.params.tracks.length;
     const [updatedaudiolength, setupdatedaudiolength] = useState(0);
     const [showcustomreleasedate, setshowcustomreleasedate] = useState(true);
+
     const [nothing, setnothing] = useState(false);
-    function onSelected({ selected, selectedStart, selectedEnd }) {
-        // Your code
-    }
 
-
-
+    const numbers = [];
 
 
     var currentdate = new Date();
-  
+
     var year = currentdate.getFullYear();
     var month = (currentdate.getMonth() + 1).toString().length > 1 ? (currentdate.getMonth() + 1) : "0" + (currentdate.getMonth() + 1)
     var day = currentdate.getDate().toString().length > 1 ? currentdate.getDate() : "0" + currentdate.getDate();
     var daydate = (parseInt(day) + 14);
     var safedate = year + "-" + month + "-" + daydate;
-   
+    var today = year + "-" + month + "-" + day;
+
 
     const uploadeverything = () => {
         if (plan === 'custom' && !preorderdate || !releasedate) {
@@ -94,73 +96,102 @@ const Step6 = () => {
 
 
 
-    const uploadsong = (e) => {
 
-        route.params.tracks.forEach(element => {
-            axios.post(Postsongurl, {
-                tracktitle: element.tracktitle,
-                trackadvice: element.advice,
-                trackcopyrightholder: element.copyrightholder,
-                trackcopyrightyear: element.copyrightyear,
-                trackisrc: element.isrc,
-                tracklanguage: element.language,
-                tracklyrics: element.lyrics,
-                primaryartists: element.primaryartist,
-                featuredartists: element.featuredartist,
-                releasetitle: route.params.releasetitle,
-                labelname: route.params.labelname ? route.params.labelname : "",
-                releasecopyrightholder: route.params.copyrightholder,
-                releasecopyrightyear: route.params.copyrightyear,
-                releaseupc: route.params.upc,
-                releasegenre: route.params.genre,
-                preorderdate: preorderdate,
-                releasedate: releasedate,
-                releaseplan: plan,
-                writers: element.writers,
-                contributors: element.contributors,
-                imageurl: e,
-                token: details.token
-            }).then(function (response) {
-                if (!response.data.message) {
-                    if (response.data.id) {
-                        uploadaudio(element.trackuri, element.trackfilename, response.data.id)
+
+    const uploadsong = (e) => {
+        const h = () => {
+            const fg = []
+            route.params.tracks.forEach(element => {
+                axios.post(Postsongurl, {
+                    tracktitle: element.tracktitle,
+                    trackadvice: element.advice,
+                    trackcopyrightholder: element.copyrightholder,
+                    trackcopyrightyear: element.copyrightyear,
+                    trackisrc: element.isrc,
+                    tracklanguage: element.language,
+                    tracklyrics: element.lyrics,
+                    primaryartists: element.primaryartist,
+                    featuredartists: element.featuredartist,
+                    releasetitle: route.params.releasetitle,
+                    labelname: route.params.labelname ? route.params.labelname : "",
+                    releasecopyrightholder: route.params.copyrightholder,
+                    releasecopyrightyear: route.params.copyrightyear,
+                    releaseupc: route.params.upc,
+                    releasegenre: route.params.genre,
+                    preorderdate: preorderdate,
+                    releasedate: releasedate,
+                    releaseplan: plan,
+                    writers: element.writers,
+                    contributors: element.contributors,
+                    imageurl: e,
+                    token: details.token
+                }).then(function (response) {
+                    if (!response.data.message) {
+                        if (response.data.id) {
+                            uploadaudio(element.trackuri, element.trackfilename, response.data.id)
+                        } else {
+                            setloading(false)
+                            Alert.alert(
+                                "Error",
+                                'There was an internal error contact admin',
+                                [
+                                    { text: "OK" }
+                                ]
+                            );
+                        }
                     } else {
                         setloading(false)
                         Alert.alert(
                             "Error",
-                            'There was an internal error contact admin',
+                            response.data.message,
                             [
                                 { text: "OK" }
                             ]
                         );
                     }
-                } else {
+                    // 
+                }).catch(function (error) {
+                    console.log(error)
                     setloading(false)
                     Alert.alert(
                         "Error",
-                        response.data.message,
+                        "There was an error try again later",
                         [
                             { text: "OK" }
                         ]
                     );
-                }
-                // 
-            }).catch(function (error) {
-                console.log(error)
-                setloading(false)
-                Alert.alert(
-                    "Error",
-                    "There was an error try again later",
-                    [
-                        { text: "OK" }
-                    ]
-                );
-                //if(error.response.status === 401 || error.response.status === 400){}
+                    //if(error.response.status === 401 || error.response.status === 400){}
+                });
+                fg.push("hi")
             });
-        });
+            return fg
+        }
 
+        if (audioslength == h().length) {
+            Alert.alert(
+                "Success",
+                'Sumitted successfully pending approval',
+                [
+                    { text: "OK" }
+                ]
+            )
+            setTimeout(() => {
+                navigation.navigate("Music")
+            }, 3000);
+            const gh = [];
+            savedsongs.forEach(element => {
+                if (element.releasetitle !== route.params.releasetitle) {
+                    gh.push(element)
+                }
+            });
+            AsyncStorage.setItem("songssaved", JSON.stringify(gh));
+
+        }
 
     }
+
+
+
 
     const uploadimage = async () => {
         let formData = new FormData();
@@ -207,7 +238,8 @@ const Step6 = () => {
         }
     }
 
-   
+
+
 
     const uploadaudio = async (uri, name, id) => {
         let formData = new FormData();
@@ -231,21 +263,8 @@ const Step6 = () => {
         if (!json.message) {
             setloading(false)
             if (json.success) {
-                setupdatedaudiolength(parseInt(updatedaudiolength) + 1)
-                setnothing(!nothing)
-                if (updatedaudiolength === (parseInt(audioslength) - 1)) {
-                    Alert.alert(
-                        "Success",
-                        'Sumitted successfully pending approval',
-                        [
-                            { text: "OK" }
-                        ]
-                    )
-                    setTimeout(() => {
-                        navigation.navigate("Music")
-                    }, 3000);
-                }
 
+                setnothing(!nothing)
 
             } else {
                 Alert.alert(
@@ -272,31 +291,36 @@ const Step6 = () => {
 
 
     const saveforlater = () => {
-        db.transaction(tx => {
+        let obj = {
+            releasetitle: route.params.releasetitle,
+            coverimage: route.params.coverimage,
+            audiofile: route.params.tracks,
+            featuredartists: route.params.featuredartists,
+            primaryartist: route.params.primaryartist,
+            labelname: route.params.labelname,
+            copyrightyear: route.params.copyrightyear,
+            copyrightholder: route.params.copyrightholder,
+            upc: route.params.upc,
+            genre: route.params.genre,
+            audiofile: route.params.tracks
+        };
+        const gh = [];
+        savedsongs.forEach(element => {
+            if (element.releasetitle !== route.params.releasetitle) {
+                gh.push(element)
+            }
+        });
+        gh.push(obj)
 
-            tx.executeSql('INSERT INTO Tracks (title,imgurl) values (?,?)', [route.params.releasetitle, route.params.coverimage.uri],
-                (txObj, resultSet) => {
-                    Alert.alert(
-                        "Success",
-                        'Saved successfully',
-                        [
-                            { text: "OK" }
-                        ]
-                    );
-                    setTimeout(() => {
-                        navigation.navigate("Home")
-                    }, 3000);
-                },
-                (txObj, error) => {
-                    Alert.alert(
-                        "Error",
-                        error + 'Contact admin',
-                        [
-                            { text: "OK" }
-                        ]
-                    );
-                })
-        }) // end transaction
+        AsyncStorage.setItem("songssaved", JSON.stringify(gh));
+        Alert.alert(
+            "Success",
+            'Saved successfully',
+            [
+                { text: "OK" }
+            ]
+        );
+        navigation.navigate("Home")
 
     }
 
@@ -326,7 +350,6 @@ const Step6 = () => {
                         <Text style={{ fontSize: 8, color: "gray", marginTop: 5 }}>
                             Create a plan for when you want your music out there{`\n`}{`\n`}
                             Choose the dates that will support your marketing and promotion plans
-
                         </Text>
                     </View>
                     <View>
@@ -362,42 +385,38 @@ const Step6 = () => {
                             <Text style={{ color: "white", fontSize: 10 }}>dates around your marketing</Text>
                             <Text style={{ color: "white", fontSize: 10 }}>and promotions.</Text>
                             <View>
-                            <View style={{ flexDirection: "row", marginTop: 10 }}>
-                                <FontAwesome5 name={"check"} color={"white"} style={{ marginTop: 3 }} />
-                                <Text style={{ color: "white", fontWeight: "bold", marginLeft: 5 }}> Release date</Text>
+                                <View style={{ flexDirection: "row", marginTop: 10 }}>
+                                    <FontAwesome5 name={"check"} color={"white"} style={{ marginTop: 3 }} />
+                                    <Text style={{ color: "white", fontWeight: "bold", marginLeft: 5 }}> Release date</Text>
+                                </View>
+                                <View style={{ flexDirection: "row", marginTop: 0 }}>
+                                    <FontAwesome5 name={"check"} color={"white"} style={{ marginTop: 3 }} />
+                                    <Text style={{ color: "white", fontWeight: "bold", marginLeft: 5 }}> Pre-order plan</Text>
+                                </View>
                             </View>
-                            <View style={{ flexDirection: "row", marginTop: 0 }}>
-                                <FontAwesome5 name={"check"} color={"white"} style={{ marginTop: 3 }} />
-                                <Text style={{ color: "white", fontWeight: "bold", marginLeft: 5 }}> Pre-order plan</Text>
-                            </View>
-                            </View>
-                           
+
                         </TouchableOpacity>
 
                     </View>
                     <View style={styles.termsview}>
 
                         <Text style={{ color: "white", fontWeight: "bold" }}>Terms & Conditions</Text>
-                        <View style={{ flexDirection: "row", marginTop: 10 }}>
-                            <Checkbox
-                                value={isSelected}
-                                onValueChange={setSelection}
-                                color={Primarycolor()}
+                        <View style={{ flexDirection: "row", marginTop: 10,width:"90%" }}>
+                            <TouchableOpacity onPress={setSelection} style={{ padding: 5 }}>
+                                <Fontisto name={isSelected ? "checkbox-active" : "checkbox-passive"} color={Primarycolor()} size={20} />
+                            </TouchableOpacity>
 
-                            />
                             <Text style={{ color: "gray", fontSize: 10, marginLeft: 5 }}>
                                 I confirm that this submission has been checked, is correct, and I
                                 understand that it may not be possible to amend once the product has
                                 been sent to services
                             </Text>
                         </View>
-                        <View style={{ flexDirection: "row", marginTop: 10 }}>
-                            <Checkbox
-                                value={selected2}
-                                onValueChange={setselected2}
-                                color={Primarycolor()}
+                        <View style={{ flexDirection: "row", marginTop: 10 ,width:"90%"}}>
+                            <TouchableOpacity onPress={setselected2} style={{ padding: 5 }}>
+                                <Fontisto name={selected2 ? "checkbox-active" : "checkbox-passive"} color={Primarycolor()} size={20} />
+                            </TouchableOpacity>
 
-                            />
                             <Text style={{ color: "gray", fontSize: 10, marginLeft: 5 }}>
                                 I confirm that I have all the necessary rights to submit this product for
                                 distribution
@@ -428,6 +447,7 @@ const Step6 = () => {
                                         setreleasedate(day.dateString)
                                     }}
                                     markedDates={{
+                                        [today]: { selected: true, marked: true, selectedColor: "silver" },
                                         [releasedate]: { selected: true, marked: true, selectedColor: Primarycolor() },
                                     }}
                                     style={{ backgroundColor: Viewcolor() }}
@@ -472,6 +492,7 @@ const Step6 = () => {
                                     }}
                                     markedDates={{
                                         [releasedate]: { selected: true, marked: true, selectedColor: Primarycolor() },
+                                        [today]: { selected: true, marked: true, selectedColor: "silver" }
                                     }}
                                     style={{ backgroundColor: Viewcolor(), }}
                                     theme={{
@@ -499,6 +520,7 @@ const Step6 = () => {
                                             setpreorderdate(day.dateString)
                                         }}
                                         markedDates={{
+                                            [today]: { selected: true, marked: true, selectedColor: "silver" },
                                             [releasedate]: { selected: true, marked: true, selectedColor: Primarycolor() },
                                             [preorderdate]: { selected: true, marked: true, selectedColor: Primarycolor() },
                                         }}
@@ -607,8 +629,8 @@ const styles = StyleSheet.create({
     nextbutton: {
         backgroundColor: Primarycolor(),
         width: 100,
-        justifyContent:"center",
-        alignItems:"center",
+        justifyContent: "center",
+        alignItems: "center",
         top: 10,
         paddingVertical: 5,
         borderRadius: 5,
@@ -616,8 +638,8 @@ const styles = StyleSheet.create({
     previousbutton: {
         backgroundColor: Primarycolor(),
         width: 100,
-        justifyContent:"center",
-        alignItems:"center",
+        justifyContent: "center",
+        alignItems: "center",
         top: 10,
         paddingVertical: 5,
         borderRadius: 5,

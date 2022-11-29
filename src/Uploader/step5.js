@@ -15,6 +15,8 @@ import * as SQLite from 'expo-sqlite';
 import axios from 'axios';
 import { Getartistdetailsurl } from "../Utils/urls";
 import { BallIndicator } from "react-native-indicators";
+import { Getsavedsongs } from "../Utils/getsavedsongs";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const db = SQLite.openDatabase('db.Userdbs') // returns Database object
 
@@ -25,8 +27,7 @@ var deviceheight = Dimensions.get('window').height;
 
 
 const Step5 = () => {
-
-
+    const savedsongs = Getsavedsongs()
     const navigation = useNavigation();
     const route = useRoute();
     const user = Getuserdetails();
@@ -67,10 +68,10 @@ const Step5 = () => {
 
     const [sound, setSound] = React.useState();
 
-    
+
 
     useEffect(() => {
-
+        checkdraft()
         db.transaction(tx => {
             // sending 4 arguments in executeSql
             tx.executeSql('SELECT * FROM User', null, // passing sql query and parameters:null
@@ -84,6 +85,25 @@ const Step5 = () => {
             ) // end executeSQL
         }) // end transaction
     }, []);
+    const checkdraft = async () => {
+        try {
+            const value = await AsyncStorage.getItem('songssaved')
+            if (value !== null) {
+                const gh = JSON.parse(value);
+                gh?.forEach(element => {
+                    if (element.releasetitle === route?.params?.releasetitle && element.audiofile) {
+                        settracks(element.audiofile.length > 0 && element.audiofile)
+                    }
+                });
+            }
+        } catch (e) {
+            console.log(e)
+        }
+
+    }
+
+
+
 
     const getartists = (e) => {
         axios.post(Getartistdetailsurl, {
@@ -256,6 +276,7 @@ const Step5 = () => {
             releasetitle: route.params.releasetitle,
             coverimage: route.params.coverimage,
             primaryartist: route.params.primaryartist,
+            featuredartists: route.params.featuredartists,
             labelname: route.params.labelname,
             copyrightyear: route.params.copyrightyear,
             copyrightholder: route.params.copyrightholder,
@@ -293,34 +314,48 @@ const Step5 = () => {
     }
 
     const saveforlater = () => {
-        db.transaction(tx => {
+        if (!tracks) {
+            Alert.alert(
+                "Error",
+                'No data to be saved',
+                [
+                    { text: "OK" }
+                ]
+            );
+        } else {
+            let obj = {
+                releasetitle: route.params.releasetitle,
+                coverimage: route.params.coverimage,
+                audiofile: route.params.tracks,
+                featuredartists: route.params.featuredartists,
+                primaryartist: route.params.primaryartist,
+                labelname: route.params.labelname,
+                copyrightyear: route.params.copyrightyear,
+                copyrightholder: route.params.copyrightholder,
+                upc: route.params.upc,
+                genre: route.params.genre,
+                audiofile: tracks
+            };
+            const gh = [];
+            savedsongs.forEach(element => {
+                if (element.releasetitle !== route.params.releasetitle) {
+                    gh.push(element)
+                }
+            });
+            gh.push(obj)
 
-            tx.executeSql('INSERT INTO Tracks (title,imgurl) values (?,?)', [route.params.releasetitle, route.params.coverimage.uri],
-                (txObj, resultSet) => {
-                    Alert.alert(
-                        "Success",
-                        'Saved successfully',
-                        [
-                            { text: "OK" }
-                        ]
-                    );
-                    setTimeout(() => {
-                        navigation.navigate("Home")
-                    }, 3000);
-                },
-                (txObj, error) => {
-                    Alert.alert(
-                        "Error",
-                        error + 'Contact admin',
-                        [
-                            { text: "OK" }
-                        ]
-                    );
-                })
-        }) // end transaction
+            AsyncStorage.setItem("songssaved", JSON.stringify(gh));
+            Alert.alert(
+                "Success",
+                'Saved successfully',
+                [
+                    { text: "OK" }
+                ]
+            );
+            navigation.navigate("Home")
+        }
 
     }
-
 
 
 
@@ -464,6 +499,8 @@ const Step5 = () => {
                                             <TouchableOpacity
                                                 onPress={() => {
                                                     settracktoedit(val)
+                                                    setlanguage(val.language && val.language)
+                                                    setadvice(val.advice && val.advice)
                                                     setedittrack(true)
                                                     seteditmusic(true)
                                                 }}
@@ -500,7 +537,7 @@ const Step5 = () => {
                             placeholder="Name your release"
                             placeholderTextColor={"gray"}
                             onChangeText={newText => settracktitle(newText)}
-                            defaultValue={tracktoedit ? tracktoedit?.releasename : tracktitle}
+                            defaultValue={tracktoedit ? tracktoedit?.tracktitle : tracktitle}
                         />
 
                         <View>
@@ -534,22 +571,22 @@ const Step5 = () => {
                             <View style={{ flexDirection: 'row' }}>
                                 <TextInput
                                     onChangeText={newText => setcopyrightyear(newText)}
-                                    defaultValue={copyrightyear}
                                     placeholder="Y Y Y Y"
                                     style={styles.leftinput}
                                     maxLength={4}
                                     placeholderTextColor="gray"
                                     keyboardType="numeric"
+                                    defaultValue={tracktoedit ? tracktoedit?.copyrightyear : copyrightyear}
                                 />
                                 <View style={{ justifyContent: "center", alignItems: "center" }}>
                                     <Image source={require('./../../assets/images/pimage.png')} style={{ height: 20, width: 20 }} />
                                 </View>
                                 <TextInput
                                     onChangeText={newText => setcopyrightholder(newText)}
-                                    defaultValue={copyrightholder}
                                     placeholder="Who owns the sound recording"
                                     style={styles.rightinput}
                                     placeholderTextColor="gray"
+                                    defaultValue={tracktoedit ? tracktoedit?.copyrightholder : copyrightholder}
                                 />
 
                             </View>
@@ -563,7 +600,7 @@ const Step5 = () => {
                                 placeholder="Don't have one? MMPG will provide an ISRC for you"
                                 placeholderTextColor={"gray"}
                                 onChangeText={newText => setisrc(newText)}
-                                defaultValue={isrc}
+                                defaultValue={tracktoedit ? tracktoedit?.isrc : isrc}
                             />
                             <Text style={{ color: "gray", fontSize: 8 }}>International Standard Recording Code</Text>
                             <View style={styles.hrg} />
@@ -724,7 +761,7 @@ const Step5 = () => {
                                 placeholder="Please enter writers names"
                                 placeholderTextColor={"gray"}
                                 onChangeText={newText => setwriter(newText)}
-                                defaultValue={writer}
+                                defaultValue={tracktoedit ? tracktoedit.writers : writer}
                             />
                             {/* <TouchableOpacity style={styles.addartistbutton}>
                                 <FontAwesome5 name={"plus"} color={Primarycolor()} />
@@ -757,9 +794,9 @@ const Step5 = () => {
                                             placeholder="Type Lyrics here"
                                             placeholderTextColor={"gray"}
                                             multiline={true}
-                                            style={{ width: "50%", color: "white" ,textAlignVertical:"top"}}
+                                            style={{ width: "50%", color: "white", textAlignVertical: "top" }}
                                             onChangeText={newText => setlyrics(newText)}
-                                            defaultValue={lyrics}
+                                            defaultValue={tracktoedit ? tracktoedit.lyrics : lyrics}
                                         />
                                         <View style={styles.lyricsoverview}>
                                             <Text style={{ color: "white", fontWeight: "bold" }}>Overview</Text>
@@ -825,7 +862,17 @@ const Step5 = () => {
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.previousbutton}>
                         <Text style={{ color: "white" }}>Previous</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.nextbutton} onPress={gotonextpage}>
+                    <TouchableOpacity style={{
+                        backgroundColor: tracks[0].tracktitle ? Primarycolor() : "gray",
+                        width: 100,
+                        justifyContent: "center",
+                        alignItems: "center",
+                        top: 10,
+                        paddingVertical: 5,
+                        borderRadius: 5,
+                    }} onPress={() => {
+                        tracks[0].tracktitle && gotonextpage()
+                    }}>
                         <Text style={{ color: "white" }}>Next</Text>
                     </TouchableOpacity>
                 </View>
@@ -907,7 +954,7 @@ const styles = StyleSheet.create({
         backgroundColor: Viewcolor(),
         marginLeft: 20,
         paddingHorizontal: 5,
-        fontSize:10,
+        fontSize: 10,
         width: "55%",
         color: "gray"
     },

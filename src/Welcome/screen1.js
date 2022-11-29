@@ -14,7 +14,6 @@ import { Getuserdetails } from './../Utils/getuserdetails';
 const db = SQLite.openDatabase('db.Userdbs') // returns Database object
 
 
-
 StatusBar.setHidden(true)
 var deviceHeight = Dimensions.get('window').height;
 var deviceWidth = Dimensions.get('window').width;
@@ -63,7 +62,7 @@ export default function Homescreen() {
           <Swiper showsButtons={false} loop={false} horizontal={false} showsVerticalScrollIndicator={false} showsPagination={false}>
             <View style={styles.loginContainer}>
               <Image
-                source={require('./../../assets/images/icon.png')}
+                source={require('./../../assets/images/png/whitelogo1.png')}
                 style={{ height: 50, width: 50 }}
               />
               <Text style={{ color: "white", fontFamily: 'Montserrat' }}>RELEASE UNLIMITED MUSIC</Text>

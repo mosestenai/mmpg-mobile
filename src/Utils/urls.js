@@ -67,3 +67,8 @@ export const updatesplitsurl = base_url + "Artists/update_split.php";
 
 //sync data
 export const syncdataurl = base_url + "Artists/sync_appdata.php";
+
+//update paypal email
+export const updatepaypalemail = base_url + "Artists/connect_paypal.php";
+//register push token url
+export const pushtokenurl = base_url + "Artists/update_push_token.php";

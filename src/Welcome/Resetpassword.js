@@ -17,7 +17,7 @@ const Resetpassword = () => {
   const navigation = useNavigation();
 
   const [email, setemail] = useState('');
-  const image = require('./../../assets/test.png')
+  const image = require('./../../assets/images/png/reset.png')
 
 
 
@@ -91,12 +91,10 @@ const styles = StyleSheet.create({
 
   },
   loginContainer: {
-    marginTop: deviceHeight / 2,
-    paddingLeft: 20,
-    backgroundColor: "black",
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    paddingTop: 30
+   width:"95%",
+   marginHorizontal:"5%",
+   position:"absolute",
+   bottom:10,
   },
   backgroundVideo: {
     position: 'absolute',

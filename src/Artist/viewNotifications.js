@@ -40,17 +40,14 @@ const ViewNotifications = () => {
                                         marginLeft: "5%",
                                         marginTop: 20,
                                         padding: 5,
-                                        borderWidth: 2,
-                                        borderColor: "white",
-                                        borderRadius: 20,
                                         justifyContent:"center",
                                         alignItems:"center"
                                     }}>
                                         <Image
-                                            source={require("./../../assets/gif/icon.png")}
+                                            source={require("./../../assets/images/png/roundlogo.png")}
                                             style={{
-                                                height: 15,
-                                                width: 15,
+                                                height: 35,
+                                                width: 35,
                                             }}
                                         />
                                     </View>
@@ -90,6 +87,8 @@ const styles = StyleSheet.create({
     notdate: {
         color: "gray",
         fontSize: 10,
+        position:"absolute",
+        right:10,
         marginTop: 30
     },
     notview: {
@@ -103,7 +102,7 @@ const styles = StyleSheet.create({
         marginTop: 30,
         fontWeight: "bold",
         fontSize: 10,
-        width: "70%"
+        width: "60%"
     },
     notmessage: {
         backgroundColor: Secondarycolor(),

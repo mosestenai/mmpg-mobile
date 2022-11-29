@@ -9,6 +9,7 @@ import { Loginuserurl } from '../Utils/urls';
 import axios from "axios";
 import * as SQLite from 'expo-sqlite';
 
+
 const db = SQLite.openDatabase('db.Userdbs') // returns Database object
 
 StatusBar.setHidden(true)
@@ -30,7 +31,7 @@ export default function Loginscreen() {
     const [passstatus, setpassstatus] = useState(true);
     const [passiconname, setpassiconname] = useState('eye-slash');
 
-    const image = require('./../../assets/test.png')
+    const image = require('./../../assets/images/png/login.png')
 
     //login with data from api
     const handleLogin = () => {
@@ -76,7 +77,7 @@ export default function Loginscreen() {
             tx.executeSql('SELECT * FROM User', null, // passing sql query and parameters:null
                 // success callback which sends two things Transaction object and ResultSet Object
                 (txObj, { rows: { _array } }) => {
-                    if (!_array[0]?.type) {
+                    if (_array[0]?.type == 'Pending') {
                         navigation.navigate("started")
                         setspinner(false)
                     } else {
@@ -110,6 +111,8 @@ export default function Loginscreen() {
 
         return (true);
     }
+
+    const image2 = require('./../../assets/images/png/login.png')
 
 
 
@@ -154,6 +157,7 @@ export default function Loginscreen() {
                                     defaultValue={password}
                                     secureTextEntry={passstatus}
                                     placeholderTextColor="gray"
+                                    autoCapitalize='none'
                                 />
                                 <TouchableOpacity onPress={() => {
                                     passiconname == "eye" ? setpassiconname("eye-slash") : setpassiconname("eye")
@@ -173,11 +177,14 @@ export default function Loginscreen() {
                             <TouchableOpacity style={styles.loginbtn} onPress={handleLogin}>
                                 {spinner ? <BallIndicator color='white' size={20} /> : <Text style={{ color: "white", fontWeight: "bold" }}>Sign In</Text>}
                             </TouchableOpacity>
+                           
                         </View>
+
+
                     </View>
                 </ScrollView>
             </ImageBackground>
-        </View>
+        </View >
     );
 }
 
@@ -210,13 +217,12 @@ const styles = StyleSheet.create({
 
     },
     loginContainer: {
-        marginTop: deviceHeight / 2,
-        paddingLeft: 20,
-        backgroundColor: "black",
-        borderTopLeftRadius: 30,
-        borderTopRightRadius: 30,
-        paddingTop: 30
+       position:"absolute",
+       bottom:15,
+       width:"95%",
+       marginHorizontal:"5%",
     },
+   
     backgroundVideo: {
         position: 'absolute',
         top: 0,
@@ -226,3 +232,4 @@ const styles = StyleSheet.create({
     },
 
 });
+

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, SafeAreaView, ScrollView, Dimensions, TouchableOpacity, StyleSheet, Image, Alert, RefreshControl } from "react-native";
 import Icon from '@expo/vector-icons/FontAwesome5';
-import { Primarycolor, Secondarycolor } from "../Utils/color";
+import { Primarycolor, Secondarycolor, Semisecondarycolor } from "../Utils/color";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { FontAwesome } from "../Components/fontawesome";
 import { useNavigation } from "@react-navigation/native";
@@ -314,8 +314,9 @@ const Homeaccount = () => {
                             },
                         ],
                     }}
-                    width={deviceWidth - 20} // from react-native
+
                     height={220}
+                    width={deviceWidth-20}
                     verticalLabelRotation={-60}
                     withInnerLines={true}
                     withVerticalLines={false}
@@ -328,21 +329,23 @@ const Homeaccount = () => {
                         backgroundColor: Primarycolor(),
                         backgroundGradientFrom: Secondarycolor(),
                         backgroundGradientTo: Secondarycolor(),
-                        linejoinType: "miter",
+                        // linejoinType: "bevel",
                         decimalPlaces: 0, // optional, defaults to 2dp
-                        //color: (opacity = 255) => `rgba(0, 0, 0, ${opacity})`,
+                        //color: (opacity = 255) => `rgba(0, 0, 0, ${opacity})`, 
                         color: (opacity = 255) => Primarycolor(),
                         labelColor: (opacity = 255) => "white",
                         style: {
                             borderRadius: 16,
-                            borderBottomLeftRadius: 5
+                            borderBottomLeftRadius: 5,
                         },
+                        propsForBackgroundLines: {
+                            stroke: "white",
+                        },
+                        linejoinType: "bevel",
                     }}
                     bezier
                     style={{
-                        marginVertical: 0,
-                        marginHorizontal: "3%",
-                        borderBottomLeftRadius: 5
+                        borderBottomLeftRadius: 5,
                     }}
 
                 />
@@ -541,7 +544,7 @@ const Homeaccount = () => {
             const final = parseInt(thirdmonth) + parseInt(secondmonth) + parseInt(firstmonth);
             setstreamstoshow(final)
         } else {
-            setstreamstoshow(graphdata.reduce((a, b) => a + b, 0))
+            setstreamstoshow(graphdata.reduce((a, b) => parseInt(a) + parseInt(b), 0))
         }
 
     }
@@ -609,7 +612,7 @@ const Homeaccount = () => {
                         position: "absolute",
                         right: 10
                     }}>
-                    <AntDesign name="setting" color={"white"} size={20} />
+                    <AntDesign name="setting" color={"white"} size={30} />
                 </TouchableOpacity>
                 <LinearGradient
                     // Background Linear Gradient
@@ -634,7 +637,10 @@ const Homeaccount = () => {
                             <Text style={{ color: "white", marginLeft: 5 }}>{screendata.totalstreams?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</Text>
                         </TouchableOpacity>
                     </View>
-                    <TouchableOpacity onPress={() => navigation.navigate("Music")} style={{ flexDirection: "row", marginTop: 25 }}>
+                    <TouchableOpacity onPress={() => navigation.navigate("Music")} style={{
+                        position: "absolute", right: "5%",
+                        flexDirection: "row", marginTop: 25
+                    }}>
                         <Text style={{ color: "white", fontSize: 10 }}>CATALOGUE</Text>
                         <Icon name="long-arrow-alt-right" color="white" style={{ marginLeft: 5 }} />
                     </TouchableOpacity>
@@ -652,7 +658,7 @@ const Homeaccount = () => {
             }>
 
                 <Swiper
-                    style={{ height: deviceHeight / 2.3 }}
+                    style={{ height: deviceHeight / 2 }}
                     showsButtons={false}
                     activeDotStyle={{
                         backgroundColor: "white",
@@ -667,7 +673,7 @@ const Homeaccount = () => {
                     loop={false}>
                     <View style={{ paddingHorizontal: "3%", width: deviceWidth, }}>
                         <View style={styles.sliderview}>
-                            <Text style={{ color: Primarycolor(), fontWeight: "bold", alignSelf: "center", fontSize: 10 }}>SONG WRITER/COMPOSER</Text>
+                            <Text style={{ color: Primarycolor(), fontWeight: "bold", alignSelf: "center", fontSize: 10, paddingVertical: 10 }}>SONG WRITER/COMPOSER</Text>
                             <Text style={styles.promote}>Music Publishing</Text>
                             <Text style={styles.message}>Your music could be generating income from multiple </Text>
                             <Text style={styles.message}> types of royalties in addition to the money you may</Text>
@@ -678,7 +684,7 @@ const Homeaccount = () => {
                                 justifyContent: "center",
                                 alignItems: "center",
                                 width: "40%",
-                                marginTop: 30,
+                                marginTop: 20,
                                 paddingVertical: 7,
                                 borderRadius: 5
                             }} onPress={() => {
@@ -690,20 +696,25 @@ const Homeaccount = () => {
                     </View>
                     <View style={{ paddingHorizontal: "3%", width: deviceWidth, }}>
                         <View style={styles.sliderview}>
-                            <Text style={{ color: Primarycolor(), fontWeight: "bold", alignSelf: "center", fontSize: 10 }}>THINGS TO DO:</Text>
-                            <Text style={styles.promote}>Promote Your</Text>
-                            <Text style={styles.promote}>Music!!!</Text>
-                            <Ionicons name="megaphone-outline" color="white" style={{ alignSelf: "center" }} size={35} />
+                            <Text style={{ color: Primarycolor(), fontWeight: "bold", alignSelf: "center", fontSize: 10, paddingVertical: 10 }}>THINGS TO DO:</Text>
+                            <Text style={styles.promote3}>Promote Your</Text>
+                            <Text style={styles.promote2}>Music!!!</Text>
+                            <Ionicons name="megaphone-outline" color="white" style={{ alignSelf: "center", marginTop: 5, marginBottom: 20 }} size={35} />
                             <Text style={styles.message}>{todotext}</Text>
                         </View>
                     </View>
 
                     <View style={{ paddingHorizontal: "3%", width: deviceWidth, }}>
                         <View style={styles.sliderview}>
-                            <Text style={{ color: Primarycolor(), fontWeight: "bold", alignSelf: "center", fontSize: 10 }}>ARTIST</Text>
+                            <Text style={{
+                                color: Primarycolor(), fontWeight: "bold", alignSelf: "center", fontSize: 10,
+                                paddingTop: 10,
+                                paddingBottom: 0
+
+                            }}>ARTIST</Text>
                             <Text style={styles.promote}>Project Funding</Text>
                             <Image
-                                source={require("./../../assets/images/funding.png")}
+                                source={require("./../../assets/images/fund2.png")}
                                 style={styles.imagef} />
                             {success ? <Text style={{ fontSize: 12, color: "green" }}>{success}</Text> : null}
                             {error ? <Text style={{ fontSize: 12, color: "red" }}>{error}</Text> : null}
@@ -730,7 +741,7 @@ const Homeaccount = () => {
 
                     }}>
                     <Text style={{ color: Primarycolor(), fontSize: 12 }}>{editby}</Text>
-                    <TouchableOpacity onPress={() => {graphdata?.length > 0 && setshowpickermenu(true)}} style={{
+                    <TouchableOpacity onPress={() => { graphdata?.length > 0 && setshowpickermenu(true) }} style={{
                         height: 20,
                         width: 20,
                         justifyContent: "center",
@@ -763,7 +774,7 @@ const Homeaccount = () => {
                                 setfocused("spotify")
                                 setgraphdata(screendata.spotifystreams)
                                 seteditby("Lifetime")
-                                setstreamstoshow(screendata.spotifystreams?.reduce((a, b) => a + b, 0))
+                                setstreamstoshow(screendata.spotifystreams?.reduce((a, b) => parseInt(a) + parseInt(b), 0))
                                 setnothing(!nothing)
                             }}
                             style={{ marginRight: 20, flexDirection: "row" }}>
@@ -774,7 +785,7 @@ const Homeaccount = () => {
                             onPress={() => {
                                 setfocused("apple")
                                 seteditby("Lifetime")
-                                setstreamstoshow(screendata.applestreams?.reduce((a, b) => a + b, 0))
+                                setstreamstoshow(screendata.applestreams?.reduce((a, b) => parseInt(a) + parseInt(b), 0))
                                 setgraphdata(screendata.applestreams)
                                 setnothing(!nothing)
                             }}
@@ -788,12 +799,26 @@ const Homeaccount = () => {
                             <Text style={{ color: "white", fontSize: 10 }}>TOTAL</Text>
                             <Text style={{ color: "white", fontSize: 8 }}>{streamstoshow}</Text>
                         </View>
-                        {graphdata?.length > 0 && <MyBezierLineChart />}
-                    </View>
-                    <View style={{ alignSelf: "center", flexDirection: "row" }}>
+                        <View style={{
+                            backgroundColor: Secondarycolor(),
+                            marginHorizontal:"3%"
+                        }}>
+                        {graphdata?.length > 0 &&
+                            <View style={{
+                                alignItems:"center",
+                                justifyContent:"center"
+                            }}>
+                                <MyBezierLineChart />
+                            </View>
+                        }
+                         <View style={{ alignSelf: "center", flexDirection: "row" }}>
                         <Icon name="headphones-alt" color={Primarycolor()} style={{ marginTop: 0 }} />
                         <Text style={{ color: "gray", marginLeft: 5, fontSize: 10 }}>Streams</Text>
                     </View>
+                        </View>
+
+                    </View>
+                   
 
                     {artists.map((val, key) => {
 
@@ -816,7 +841,11 @@ const Homeaccount = () => {
                                 <Text style={styles.artistname}>{val.name}</Text>
                                 <TouchableOpacity onPress={() => navigation.navigate("viewartist", {
                                     data: val
-                                })} style={{ marginTop: 13 }}>
+                                })} style={{
+                                    marginTop: 13,
+                                    position: "absolute",
+                                    right: 20
+                                }}>
                                     <Icon name="angle-right" color="white" size={25} />
                                 </TouchableOpacity>
                             </View>)
@@ -937,10 +966,8 @@ const styles = StyleSheet.create({
         color: "gray"
     },
     imagef: {
-        height: 60,
-        width: 60,
         alignSelf: "center",
-        marginTop: 20,
+        marginTop: -5,
     },
     requestbtn: {
         alignSelf: "center",
@@ -961,12 +988,29 @@ const styles = StyleSheet.create({
     promote: {
         marginTop: 10,
         fontSize: 20,
+        marginBottom: 10,
+        fontWeight: "bold",
+        color: "white",
+        alignSelf: "center"
+    },
+    promote3: {
+        marginTop: 0,
+        fontSize: 20,
+        marginBottom: 0,
+        fontWeight: "bold",
+        color: "white",
+        alignSelf: "center"
+    },
+    promote2: {
+        marginTop: 0,
+        fontSize: 20,
+        marginBottom: 10,
         fontWeight: "bold",
         color: "white",
         alignSelf: "center"
     },
     sliderview: {
-        height: deviceHeight / 3,
+        height: deviceHeight / 2.6,
         backgroundColor: Secondarycolor(),
         marginTop: 20,
         borderRadius: 10,
