@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "802383738590",
+    "project_id": "mmpgapp-a60e2",
+    "storage_bucket": "mmpgapp-a60e2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:802383738590:android:e42ece1016171df73ff44f",
+        "android_client_info": {
+          "package_name": "com.mmpgmusic.mmpg"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "802383738590-s217k40omkbe3jang777bmshmgqbma91.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBtpFwjVuhRFyHuhyIZW_Ox9scOhJn6zb0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "802383738590-s217k40omkbe3jang777bmshmgqbma91.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
