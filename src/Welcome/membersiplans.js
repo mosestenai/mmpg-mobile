@@ -291,7 +291,6 @@ const Membershipplans = () => {
                                             justifyContent: "center",
                                             alignItems: "center",
                                             width: "40%",
-                                            height: 30,
                                             paddingVertical: 5,
                                             borderRadius: 5
                                         }}>
@@ -397,7 +396,6 @@ const Membershipplans = () => {
                                             justifyContent: "center",
                                             alignItems: "center",
                                             width: "40%",
-                                            height: 30,
                                             paddingVertical: 5,
                                             borderRadius: 5
                                         }}>

@@ -66,7 +66,7 @@ const Step4 = () => {
                         setcopyrightyear(element.copyrightyear && element.copyrightyear)
                         setcopyrightholder(element.copyrightholder && element.copyrightholder)
                         setupc(element.upc && element.upc)
-                        setgenre(element.genre && element.genre)
+                        setgenre(element.genre.length > 0 ? element.genre : "Choose a primary genre")
 
                     }
                 });
@@ -170,6 +170,7 @@ const Step4 = () => {
         "Comedy",
         "Country",
         "Dance",
+        "Dancehall",
         "Devotional & Spiritual",
         "Electronic",
         "Folk",
@@ -182,6 +183,7 @@ const Step4 = () => {
         "Indian Pop",
         "Instrumental",
         "Jazz",
+        "Raggae",
         "Karaoke",
         "Latin",
         "New Age",

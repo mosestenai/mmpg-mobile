@@ -315,15 +315,14 @@ const Homeaccount = () => {
                         ],
                     }}
 
+                    width={deviceWidth - 30} // from react-native
                     height={220}
-                    width={deviceWidth - (deviceWidth > 400 ? 30 : 20)} // from react-native
                     verticalLabelRotation={-60}
                     withInnerLines={true}
                     withVerticalLines={false}
                     withHorizontalLines={true}
                     withDots={false}
-                    withOuterLines={false}
-
+                    withOuterLines={true}
                     // yAxisLabel={'Rs'}
                     chartConfig={{
                         backgroundColor: Primarycolor(),
@@ -333,18 +332,20 @@ const Homeaccount = () => {
                         decimalPlaces: 0, // optional, defaults to 2dp
                         //color: (opacity = 255) => `rgba(0, 0, 0, ${opacity})`, 
                         color: (opacity = 255) => Primarycolor(),
-                        labelColor: (opacity = 255) => "white",
+                        labelColor: (opacity = 255) => Primarycolor(),
                         style: {
                             borderRadius: 16,
                             borderBottomLeftRadius: 5,
                         },
                         propsForBackgroundLines: {
-                            stroke: "white",
+                            stroke: Primarycolor(),
                         },
                         linejoinType: "bevel",
                     }}
                     bezier
                     style={{
+                        marginVertical: 0,
+                        marginHorizontal: "0%",
                         borderBottomLeftRadius: 5,
                     }}
 
@@ -817,7 +818,7 @@ const Homeaccount = () => {
                             </View>
                         </View>
                     </View> :
-                        <View style={{ marginTop: -10, backgroundColor: Secondarycolor(), marginHorizontal: "3%", borderRadius: 10 }}>
+                        <View style={{ marginTop: 20, backgroundColor: Secondarycolor(), marginHorizontal: "3%", borderRadius: 10 }}>
                             <View style={{
                                 position: "absolute",
                                 right: 20,

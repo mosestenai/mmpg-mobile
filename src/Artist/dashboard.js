@@ -292,7 +292,7 @@ const Artistdashboard = () => {
                                 <Text style={{
                                      color: "white",
                                      fontWeight:"900",
-                                     fontSize: 30
+                                     fontSize: 25
                                 }} >{day}</Text>
                                 <Text style={{
                                      color: "white",

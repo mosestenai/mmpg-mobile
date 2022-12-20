@@ -134,7 +134,8 @@ export default function Loginscreen() {
                                     style={{
                                         height: 40,
                                         marginLeft: 20,
-                                        color: "white"
+                                        color: "white",
+                                        flex:1
                                     }}
                                     placeholder="Email"
                                     onChangeText={newText => setemail(newText)}

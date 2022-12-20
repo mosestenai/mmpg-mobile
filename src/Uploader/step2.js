@@ -212,11 +212,11 @@ const Step2 = () => {
 
                                 return (
                                     <View style={styles.audioview} key={key}>
-                                        <FontAwesome5 name={"music"} style={{ color: Primarycolor() }} />
-                                        <Text style={{ color: Semisecondarycolor(), fontSize: 12, marginLeft: 10 }}>{val?.trackfilename.substring(0, 10)}</Text>
+                                        <FontAwesome5 name={"music"} style={{ color: Primarycolor(),marginTop:3 }} />
+                                        <Text style={{ color: "white", fontSize: 12, marginLeft: 10 }}>{val?.trackfilename.substring(0, 10)}</Text>
                                         <View style={{ flexDirection: "row", position: "absolute", right: 5 }}>
-                                            <Text style={{ color: "green", fontSize: 10, marginTop: 5 }}>Uploaded</Text>
-                                            <TouchableOpacity onPress={() => deleteaudio(val)}>
+                                            <Text style={{ color: "green", fontSize: 10, marginTop: 10 }}>Uploaded</Text>
+                                            <TouchableOpacity onPress={() => deleteaudio(val)} style={{marginTop:5}}>
                                                 <MaterialCommunityIcons name="delete-forever" color={"white"} size={25} />
                                             </TouchableOpacity>
 
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
     browse2button: {
         flexDirection: "row",
         backgroundColor: Primarycolor(),
-        width: "50%",
+        width: "60%",
         paddingVertical: 5,
         marginTop: 20
     },

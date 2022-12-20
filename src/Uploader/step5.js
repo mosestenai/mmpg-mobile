@@ -492,21 +492,22 @@ const Step5 = () => {
                             </View>
                             <View style={{ padding: 10 }}>
                                 {tracks.map((val, key) => {
+                                    console.log(val)
                                     return (
                                         <View key={key} style={{ flexDirection: "row", margin: 5 }}>
-                                            <Text style={{ color: "gray", width: "30%", fontSize: 12 }}>{val.tracktitle} </Text>
+                                            <Text style={{ color: "gray", width: "30%", fontSize: 12 }}>{val.tracktitle?.substring(0, 10)} </Text>
                                             <Text style={{ color: "gray", width: "30%", fontSize: 10 }}>{val.primaryartist}</Text>
                                             <TouchableOpacity
                                                 onPress={() => {
                                                     settracktoedit(val)
-                                                    setlanguage(val.language && val.language)
-                                                    setadvice(val.advice && val.advice)
+                                                    setlanguage(val?.language?.length > 1 ? val.language : "Choose")
+                                                    setadvice(val?.advice?.length > 1 ? val.advice : "Choose")
                                                     setedittrack(true)
                                                     seteditmusic(true)
                                                 }}
                                                 style={{ flexDirection: "row" }}>
                                                 <Text style={{ fontWeight: "bold", color: Primarycolor() }}>Edit track info</Text>
-                                                <FontAwesome5 name="pen" style={{ color: Primarycolor(), marginLeft: 3 }} />
+                                                <FontAwesome5 name="pen" style={{ color: Primarycolor(), marginLeft: 3 ,marginTop:3}} />
                                             </TouchableOpacity>
                                             <TouchableOpacity style={{ marginTop: -5 }}>
                                                 <MaterialCommunityIcons name="delete-forever" size={30} color="white" />
