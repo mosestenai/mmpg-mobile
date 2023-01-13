@@ -123,46 +123,7 @@ const Membershipplans = () => {
         if (!z) {//if package chosen is not bespoke,,open paypal
             openlink('https://mmpg.eazistey.co.ke/' + user.token + '/' + e)
         }
-        // axios.post(Submitplanuserurl, {
-        //     token: user.token,
-        //     plan: e
-        // }).then(function (response) {
-        //     setloading(false)
-        //     if (!response.data.message) {
-        //         if (response.data.success) {
-        //             db.transaction(tx => {
-        //                 // sending 4 arguments in executeSql
-        //                 tx.executeSql('UPDATE User set type=? where email=?',
-        //                     [e, user.email], // passing sql query and parameters:null
-        //                     // success callback which sends two things Transaction object and ResultSet Object
-        //                     (tx, results) => {
-        //                         if (results.rowsAffected > 0) {
-        //                             // navigation.replace("default")
-        //                             //open link
-        //                             if (!z) {
-        //                                 openlink('https://mmpg.eazistey.co.ke/' + user.token + '/' + e)
-        //                             }
-        //                         } else {
-        //                             seterror("Internal app error.contact admin")
-        //                         }
-        //                     },
-        //                     (txObj, error) => console.log('Error ', error)
-        //                 ) // end executeSQL
-        //             }) // end transaction
-        //         } else {
-        //             seterror("There was an internal error contact admin")
-        //         }
-        //     } else {
-        //         seterror(response.data.message)
-        //     }
-        //     // 
-        // }).catch(function (error) {
-
-        //     setloading(false)
-        //     seterror("Sorry an error occurred,try again later");
-        //     //if(error.response.status === 401 || error.response.status === 400){}
-
-        // });
+        
     }
 
     const openlink = async (e) => {
